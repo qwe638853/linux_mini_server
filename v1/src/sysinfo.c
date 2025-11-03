@@ -4,9 +4,10 @@
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
+#include <sys/ioctl.h>  // for ioctl
 #include <ifaddrs.h>
 #include <netdb.h>
-#include <net/if.h>
+#include <net/if.h>    // for IFNAMSIZ
 #include <arpa/inet.h>
 #include <netpacket/packet.h>
 #include <pwd.h>
@@ -15,6 +16,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <net/if.h>    // for SIOCGIFFLAGS, SIOCGIFMTU, SIOCGIFNETMASK, SIOCGIFBRDADDR
+#include <ifaddrs.h> // for getifaddrs
 
 
 int get_hostname(){
@@ -105,17 +108,74 @@ int get_env_info(){
     return 0;
 }
 
+int get_network_info(){
+    // initialize ifaddrs
+    struct ifaddrs *ifaddr = NULL, *ifa = NULL;
+    if(getifaddrs(&ifaddr) < 0){
+        perror("getifaddrs");
+        return -1;
+    }
+    printf("=== Network Interfaces ===\n");
 
+    // iterate through all interfaces
+    for(ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next){
+        if(!ifa->ifa_addr){
+            continue;
+        }
+        
+        // 先打印介面名稱和 IPv4 地址（如果有的話）
+        if(ifa->ifa_addr->sa_family == AF_INET){
+            struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
+            printf("%s: %s\n", ifa->ifa_name, inet_ntoa(sa->sin_addr));
+        } else {
+            // 非 IPv4 地址也顯示介面名稱
+            printf("%s:\n", ifa->ifa_name);
+        }
 
-
-int main(){
-    get_hostname();
-    get_local_time();
-    get_os_info();
-    get_memory_usage();
-    get_user_info();
-    get_disk_info();
-    get_env_info();
+        int fd = socket(AF_INET, SOCK_DGRAM, 0);
+        struct ifreq ifr;
+        memset(&ifr, 0, sizeof(ifr));
+        strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+        
+        // 獲取 MAC 地址
+        if(ioctl(fd, SIOCGIFHWADDR, &ifr) == 0){
+            unsigned char *mac_addr = (unsigned char *)ifr.ifr_hwaddr.sa_data;
+            // 檢查是否全為 0
+            int is_zero = 1;
+            for(int i = 0; i < 6; i++){
+                if(mac_addr[i] != 0){
+                    is_zero = 0;
+                    break;
+                }
+            }
+            if(is_zero){
+                printf("  MAC Address: NA\n");
+            } else {
+                printf("  MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                       mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+            }
+        }
+        
+        if(ioctl(fd, SIOCGIFMTU, &ifr) == 0){
+            printf("  MTU: %d\n", ifr.ifr_mtu);
+        }
+        // 只為 IPv4 顯示 Netmask 和 Broadcast
+        if(ifa->ifa_addr->sa_family == AF_INET){
+            if(ioctl(fd, SIOCGIFNETMASK, &ifr) == 0){
+                struct sockaddr_in *mask = (struct sockaddr_in *)&ifr.ifr_netmask;
+                printf("  Netmask: %s\n", inet_ntoa(mask->sin_addr));
+            }
+            if(ioctl(fd, SIOCGIFBRDADDR, &ifr) == 0){
+                struct sockaddr_in *brd = (struct sockaddr_in *)&ifr.ifr_broadaddr;
+                printf("  Broadcast: %s\n", inet_ntoa(brd->sin_addr));
+            }
+        }
+        close(fd);
+    }
+    
+    freeifaddrs(ifaddr);
     return 0;
 }
+
+
 

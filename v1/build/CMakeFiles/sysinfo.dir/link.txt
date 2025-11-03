@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC  -Wall -Wextra -Werror -shared -Wl,-soname,libsysinfo.so -o lib/libsysinfo.so CMakeFiles/sysinfo.dir/src/sysinfo.c.o 

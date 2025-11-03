@@ -1,0 +1,9 @@
+/home/linux_mini_server/v1/build/CMakeFiles/sysinfo.dir
+/home/linux_mini_server/v1/build/CMakeFiles/server.dir
+/home/linux_mini_server/v1/build/CMakeFiles/client.dir
+/home/linux_mini_server/v1/build/CMakeFiles/edit_cache.dir
+/home/linux_mini_server/v1/build/CMakeFiles/rebuild_cache.dir
+/home/linux_mini_server/v1/build/CMakeFiles/list_install_components.dir
+/home/linux_mini_server/v1/build/CMakeFiles/install.dir
+/home/linux_mini_server/v1/build/CMakeFiles/install/local.dir
+/home/linux_mini_server/v1/build/CMakeFiles/install/strip.dir
