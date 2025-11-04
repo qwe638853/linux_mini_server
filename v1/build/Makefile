@@ -224,6 +224,30 @@ src/client.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/client.c.s
 .PHONY : src/client.c.s
 
+src/env.o: src/env.c.o
+.PHONY : src/env.o
+
+# target to build an object file
+src/env.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/env.c.o
+.PHONY : src/env.c.o
+
+src/env.i: src/env.c.i
+.PHONY : src/env.i
+
+# target to preprocess a source file
+src/env.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/env.c.i
+.PHONY : src/env.c.i
+
+src/env.s: src/env.c.s
+.PHONY : src/env.s
+
+# target to generate assembly for a file
+src/env.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/env.c.s
+.PHONY : src/env.c.s
+
 src/server.o: src/server.c.o
 .PHONY : src/server.o
 
@@ -247,6 +271,30 @@ src/server.s: src/server.c.s
 src/server.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/server.c.s
 .PHONY : src/server.c.s
+
+src/smtp.o: src/smtp.c.o
+.PHONY : src/smtp.o
+
+# target to build an object file
+src/smtp.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/smtp.c.o
+.PHONY : src/smtp.c.o
+
+src/smtp.i: src/smtp.c.i
+.PHONY : src/smtp.i
+
+# target to preprocess a source file
+src/smtp.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/smtp.c.i
+.PHONY : src/smtp.c.i
+
+src/smtp.s: src/smtp.c.s
+.PHONY : src/smtp.s
+
+# target to generate assembly for a file
+src/smtp.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/smtp.c.s
+.PHONY : src/smtp.c.s
 
 src/sysinfo.o: src/sysinfo.c.o
 .PHONY : src/sysinfo.o
@@ -290,9 +338,15 @@ help:
 	@echo "... src/client.o"
 	@echo "... src/client.i"
 	@echo "... src/client.s"
+	@echo "... src/env.o"
+	@echo "... src/env.i"
+	@echo "... src/env.s"
 	@echo "... src/server.o"
 	@echo "... src/server.i"
 	@echo "... src/server.s"
+	@echo "... src/smtp.o"
+	@echo "... src/smtp.i"
+	@echo "... src/smtp.s"
 	@echo "... src/sysinfo.o"
 	@echo "... src/sysinfo.i"
 	@echo "... src/sysinfo.s"

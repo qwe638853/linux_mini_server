@@ -8,9 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/linux_mini_server/v1/src/env.c" "CMakeFiles/server.dir/src/env.c.o" "gcc" "CMakeFiles/server.dir/src/env.c.o.d"
-  "/home/linux_mini_server/v1/src/server.c" "CMakeFiles/server.dir/src/server.c.o" "gcc" "CMakeFiles/server.dir/src/server.c.o.d"
-  "/home/linux_mini_server/v1/src/smtp.c" "CMakeFiles/server.dir/src/smtp.c.o" "gcc" "CMakeFiles/server.dir/src/smtp.c.o.d"
+  "/home/linux_mini_server/v1/src/env.c" "CMakeFiles/smtp_test.dir/src/env.c.o" "gcc" "CMakeFiles/smtp_test.dir/src/env.c.o.d"
+  "/home/linux_mini_server/v1/src/smtp.c" "CMakeFiles/smtp_test.dir/src/smtp.c.o" "gcc" "CMakeFiles/smtp_test.dir/src/smtp.c.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

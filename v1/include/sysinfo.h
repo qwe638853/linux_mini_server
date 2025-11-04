@@ -1,10 +1,11 @@
 #pragma once
+#include <stdio.h>
 
-int get_hostname();
-int get_local_time();
-int get_os_info();
-int get_memory_usage();
-int get_user_info();
-int get_disk_info();
-int get_env_info();
-int get_network_info();
+int get_hostname(FILE *fp);
+int get_local_time(FILE *fp);
+int get_os_info(FILE *fp);
+int get_memory_usage(FILE *fp);
+int get_user_info(FILE *fp);
+int get_disk_info(FILE *fp);
+int get_env_info(FILE *fp);
+int get_network_info(FILE *fp);

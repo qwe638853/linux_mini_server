@@ -15,6 +15,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # 設定包含目錄
 include_directories(include)
 
+# 查找 libcurl（多個目標共用）
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CURL REQUIRED libcurl)
+
 # 共享庫：libsysinfo
 add_library(sysinfo SHARED src/sysinfo.c)
 set_target_properties(sysinfo PROPERTIES
@@ -22,9 +26,10 @@ set_target_properties(sysinfo PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Server 可執行文件（需要鏈接 sysinfo 庫）
-add_executable(server src/server.c)
-target_link_libraries(server sysinfo)
+# Server 可執行文件（需要鏈接 sysinfo 庫、smtp.c、env.c 和 libcurl）
+add_executable(server src/server.c src/smtp.c src/env.c)
+target_link_libraries(server sysinfo ${CURL_LIBRARIES})
+target_include_directories(server PRIVATE ${CURL_INCLUDE_DIRS})
 
 # 設定 server 的 rpath，讓它可以找到動態庫
 set_target_properties(server PROPERTIES

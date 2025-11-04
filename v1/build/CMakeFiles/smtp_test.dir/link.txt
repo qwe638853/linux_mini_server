@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/smtp_test.dir/src/smtp.c.o CMakeFiles/smtp_test.dir/src/env.c.o -o bin/smtp_test  -lcurl 

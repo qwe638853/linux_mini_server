@@ -20,64 +20,64 @@
 #include <ifaddrs.h> // for getifaddrs
 
 
-int get_hostname(){
+int get_hostname(FILE *fp){
     char hostname[256] = {0};
     gethostname(hostname, sizeof(hostname));
-    printf("Hostname: %s\n", hostname);
+    fprintf(fp, "Hostname: %s\n", hostname);
     return 0;
 }
 
 // single thread
-int get_local_time(){
+int get_local_time(FILE *fp){
     time_t now = time(NULL);
     struct tm *local_time = localtime(&now);
-    printf("Local Time: %s\n", asctime(local_time));
+    fprintf(fp, "Local Time: %s\n", asctime(local_time));
     return 0;
 }
 
-int get_os_info(){
+int get_os_info(FILE *fp){
     struct utsname name;
     if(uname(&name) < 0){
         perror("uname");
         return -1;
     }
-    printf("OS: %s\n", name.sysname);
-    printf("Release: %s\n", name.release);
-    printf("Version: %s\n", name.version);
-    printf("Machine: %s\n", name.machine);
+    fprintf(fp, "OS: %s\n", name.sysname);
+    fprintf(fp, "Release: %s\n", name.release);
+    fprintf(fp, "Version: %s\n", name.version);
+    fprintf(fp, "Machine: %s\n", name.machine);
     return 0;
 }
 
-int get_memory_usage(){
+int get_memory_usage(FILE *fp){
     struct sysinfo info;
     if(sysinfo(&info) < 0){
         perror("sysinfo");
         return -1;
     }
-    printf("Uptime:      %ld seconds\n", info.uptime);
-    printf("Load Avg:    %.2f %.2f %.2f (1/5/15 min)\n", 
+    fprintf(fp, "Uptime:      %ld seconds\n", info.uptime);
+    fprintf(fp, "Load Avg:    %.2f %.2f %.2f (1/5/15 min)\n", 
                info.loads[0] / 65536.0, 
                info.loads[1] / 65536.0, 
                info.loads[2] / 65536.0);
-    printf("Total RAM:   %ld bytes\n", info.totalram);
-    printf("Free RAM:    %ld bytes\n", info.freeram);
-    printf("Used RAM:    %ld bytes\n", info.totalram - info.freeram);
-    printf("Memory Usage: %f%%\n", (float)(info.totalram - info.freeram) / info.totalram * 100);
+    fprintf(fp, "Total RAM:   %ld bytes\n", info.totalram);
+    fprintf(fp, "Free RAM:    %ld bytes\n", info.freeram);
+    fprintf(fp, "Used RAM:    %ld bytes\n", info.totalram - info.freeram);
+    fprintf(fp, "Memory Usage: %f%%\n", (float)(info.totalram - info.freeram) / info.totalram * 100);
     return 0;
 }
 
-int get_user_info(){
+int get_user_info(FILE *fp){
     struct passwd *pw = getpwuid(getuid());
     if(pw == NULL){
         perror("getpwuid");
         return -1;
     }
-    printf("User: %s\n", pw->pw_name);
-    printf("Home: %s\n", pw->pw_dir);
+    fprintf(fp, "User: %s\n", pw->pw_name);
+    fprintf(fp, "Home: %s\n", pw->pw_dir);
     return 0;
 }
 
-int get_disk_info(){
+int get_disk_info(FILE *fp){
     struct statvfs info;
     if(statvfs("/", &info) < 0){
         perror("statvfs");
@@ -89,33 +89,33 @@ int get_disk_info(){
 
     double usage = (double)used_bytes / (double)total_bytes * 100.0;
 
-    printf("Disk Usage : %.2f%%\n", usage);
-    printf("Total Space: %llu bytes\n", total_bytes);
-    printf("Free Space : %llu bytes\n", free_bytes);
-    printf("Used Space : %llu bytes\n", used_bytes);
+    fprintf(fp, "Disk Usage : %.2f%%\n", usage);
+    fprintf(fp, "Total Space: %llu bytes\n", total_bytes);
+    fprintf(fp, "Free Space : %llu bytes\n", free_bytes);
+    fprintf(fp, "Used Space : %llu bytes\n", used_bytes);
     return 0;
 }
 
 extern char **environ;
 
-int get_env_info(){
-    printf("=== Environment Variables ===\n");
+int get_env_info(FILE *fp){
+    fprintf(fp, "=== Environment Variables ===\n");
 
     for (char **env = environ; *env != NULL; env++) {
-        printf("%s\n", *env);
+        fprintf(fp, "%s\n", *env);
     }
 
     return 0;
 }
 
-int get_network_info(){
+int get_network_info(FILE *fp){
     // initialize ifaddrs
     struct ifaddrs *ifaddr = NULL, *ifa = NULL;
     if(getifaddrs(&ifaddr) < 0){
         perror("getifaddrs");
         return -1;
     }
-    printf("=== Network Interfaces ===\n");
+    fprintf(fp, "=== Network Interfaces ===\n");
 
     // iterate through all interfaces
     for(ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next){
@@ -126,10 +126,10 @@ int get_network_info(){
         // 先打印介面名稱和 IPv4 地址（如果有的話）
         if(ifa->ifa_addr->sa_family == AF_INET){
             struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
-            printf("%s: %s\n", ifa->ifa_name, inet_ntoa(sa->sin_addr));
+            fprintf(fp, "%s: %s\n", ifa->ifa_name, inet_ntoa(sa->sin_addr));
         } else {
             // 非 IPv4 地址也顯示介面名稱
-            printf("%s:\n", ifa->ifa_name);
+            fprintf(fp, "%s:\n", ifa->ifa_name);
         }
 
         int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -149,25 +149,25 @@ int get_network_info(){
                 }
             }
             if(is_zero){
-                printf("  MAC Address: NA\n");
+                fprintf(fp, "  MAC Address: NA\n");
             } else {
-                printf("  MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                fprintf(fp, "  MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
                        mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
             }
         }
         
         if(ioctl(fd, SIOCGIFMTU, &ifr) == 0){
-            printf("  MTU: %d\n", ifr.ifr_mtu);
+            fprintf(fp, "  MTU: %d\n", ifr.ifr_mtu);
         }
         // 只為 IPv4 顯示 Netmask 和 Broadcast
         if(ifa->ifa_addr->sa_family == AF_INET){
             if(ioctl(fd, SIOCGIFNETMASK, &ifr) == 0){
                 struct sockaddr_in *mask = (struct sockaddr_in *)&ifr.ifr_netmask;
-                printf("  Netmask: %s\n", inet_ntoa(mask->sin_addr));
+                fprintf(fp, "  Netmask: %s\n", inet_ntoa(mask->sin_addr));
             }
             if(ioctl(fd, SIOCGIFBRDADDR, &ifr) == 0){
                 struct sockaddr_in *brd = (struct sockaddr_in *)&ifr.ifr_broadaddr;
-                printf("  Broadcast: %s\n", inet_ntoa(brd->sin_addr));
+                fprintf(fp, "  Broadcast: %s\n", inet_ntoa(brd->sin_addr));
             }
         }
         close(fd);
