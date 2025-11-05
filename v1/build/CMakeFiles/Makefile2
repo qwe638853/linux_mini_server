@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = /home/linux_mini_server/v1/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/sysinfo.dir/all
+all: CMakeFiles/utility.dir/all
 all: CMakeFiles/server.dir/all
 all: CMakeFiles/client.dir/all
 .PHONY : all
@@ -73,50 +73,50 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/sysinfo.dir/clean
+clean: CMakeFiles/utility.dir/clean
 clean: CMakeFiles/server.dir/clean
 clean: CMakeFiles/client.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/sysinfo.dir
+# Target rules for target CMakeFiles/utility.dir
 
 # All Build rule for target.
-CMakeFiles/sysinfo.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=7,8 "Built target sysinfo"
-.PHONY : CMakeFiles/sysinfo.dir/all
+CMakeFiles/utility.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=8,9 "Built target utility"
+.PHONY : CMakeFiles/utility.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/sysinfo.dir/rule: cmake_check_build_system
+CMakeFiles/utility.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/sysinfo.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/utility.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 0
-.PHONY : CMakeFiles/sysinfo.dir/rule
+.PHONY : CMakeFiles/utility.dir/rule
 
 # Convenience name for target.
-sysinfo: CMakeFiles/sysinfo.dir/rule
-.PHONY : sysinfo
+utility: CMakeFiles/utility.dir/rule
+.PHONY : utility
 
 # clean rule for target.
-CMakeFiles/sysinfo.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/clean
-.PHONY : CMakeFiles/sysinfo.dir/clean
+CMakeFiles/utility.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/clean
+.PHONY : CMakeFiles/utility.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/server.dir
 
 # All Build rule for target.
-CMakeFiles/server.dir/all: CMakeFiles/sysinfo.dir/all
+CMakeFiles/server.dir/all: CMakeFiles/utility.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=3,4,5,6 "Built target server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=3,4,5,6,7 "Built target server"
 .PHONY : CMakeFiles/server.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/server.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/server.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 0
 .PHONY : CMakeFiles/server.dir/rule
@@ -134,7 +134,7 @@ CMakeFiles/server.dir/clean:
 # Target rules for target CMakeFiles/client.dir
 
 # All Build rule for target.
-CMakeFiles/client.dir/all:
+CMakeFiles/client.dir/all: CMakeFiles/utility.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=1,2 "Built target client"
@@ -142,7 +142,7 @@ CMakeFiles/client.dir/all:
 
 # Build rule for subdir invocation for target.
 CMakeFiles/client.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/client.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/linux_mini_server/v1/build/CMakeFiles 0
 .PHONY : CMakeFiles/client.dir/rule

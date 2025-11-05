@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include "debug.h"
 
 int get_hostname(FILE *fp);
 int get_local_time(FILE *fp);

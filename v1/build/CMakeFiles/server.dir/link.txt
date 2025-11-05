@@ -1,1 +1,1 @@
-/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/server.dir/src/server.c.o CMakeFiles/server.dir/src/smtp.c.o CMakeFiles/server.dir/src/env.c.o -o bin/server  -Wl,-rpath,/home/linux_mini_server/v1/build/lib lib/libsysinfo.so -lcurl 
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/server.dir/src/server.c.o CMakeFiles/server.dir/src/sysinfo.c.o CMakeFiles/server.dir/src/smtp.c.o CMakeFiles/server.dir/src/env.c.o -o bin/server  -Wl,-rpath,/home/linux_mini_server/v1/build/lib lib/libutility.so -lcurl 

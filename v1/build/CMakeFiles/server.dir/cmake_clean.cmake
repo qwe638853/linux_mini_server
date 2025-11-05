@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/server.dir/src/server.c.o.d"
   "CMakeFiles/server.dir/src/smtp.c.o"
   "CMakeFiles/server.dir/src/smtp.c.o.d"
+  "CMakeFiles/server.dir/src/sysinfo.c.o"
+  "CMakeFiles/server.dir/src/sysinfo.c.o.d"
   "bin/server"
   "bin/server.pdb"
 )

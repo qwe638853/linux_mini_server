@@ -162,17 +162,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named sysinfo
+# Target rules for targets named utility
 
 # Build rule for target.
-sysinfo: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sysinfo
-.PHONY : sysinfo
+utility: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 utility
+.PHONY : utility
 
 # fast build rule for target.
-sysinfo/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/build
-.PHONY : sysinfo/fast
+utility/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/build
+.PHONY : utility/fast
 
 #=============================================================================
 # Target rules for targets named server
@@ -223,6 +223,30 @@ src/client.s: src/client.c.s
 src/client.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/src/client.c.s
 .PHONY : src/client.c.s
+
+src/debug.o: src/debug.c.o
+.PHONY : src/debug.o
+
+# target to build an object file
+src/debug.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/src/debug.c.o
+.PHONY : src/debug.c.o
+
+src/debug.i: src/debug.c.i
+.PHONY : src/debug.i
+
+# target to preprocess a source file
+src/debug.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/src/debug.c.i
+.PHONY : src/debug.c.i
+
+src/debug.s: src/debug.c.s
+.PHONY : src/debug.s
+
+# target to generate assembly for a file
+src/debug.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/utility.dir/build.make CMakeFiles/utility.dir/src/debug.c.s
+.PHONY : src/debug.c.s
 
 src/env.o: src/env.c.o
 .PHONY : src/env.o
@@ -301,7 +325,7 @@ src/sysinfo.o: src/sysinfo.c.o
 
 # target to build an object file
 src/sysinfo.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/src/sysinfo.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/sysinfo.c.o
 .PHONY : src/sysinfo.c.o
 
 src/sysinfo.i: src/sysinfo.c.i
@@ -309,7 +333,7 @@ src/sysinfo.i: src/sysinfo.c.i
 
 # target to preprocess a source file
 src/sysinfo.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/src/sysinfo.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/sysinfo.c.i
 .PHONY : src/sysinfo.c.i
 
 src/sysinfo.s: src/sysinfo.c.s
@@ -317,7 +341,7 @@ src/sysinfo.s: src/sysinfo.c.s
 
 # target to generate assembly for a file
 src/sysinfo.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sysinfo.dir/build.make CMakeFiles/sysinfo.dir/src/sysinfo.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/sysinfo.c.s
 .PHONY : src/sysinfo.c.s
 
 # Help Target
@@ -334,10 +358,13 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... client"
 	@echo "... server"
-	@echo "... sysinfo"
+	@echo "... utility"
 	@echo "... src/client.o"
 	@echo "... src/client.i"
 	@echo "... src/client.s"
+	@echo "... src/debug.o"
+	@echo "... src/debug.i"
+	@echo "... src/debug.s"
 	@echo "... src/env.o"
 	@echo "... src/env.i"
 	@echo "... src/env.s"

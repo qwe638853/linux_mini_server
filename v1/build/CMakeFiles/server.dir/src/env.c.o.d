@@ -1,6 +1,6 @@
 CMakeFiles/server.dir/src/env.c.o: /home/linux_mini_server/v1/src/env.c \
  /usr/include/stdc-predef.h /home/linux_mini_server/v1/include/env.h \
- /usr/include/stdio.h \
+ /home/linux_mini_server/v1/include/debug.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \

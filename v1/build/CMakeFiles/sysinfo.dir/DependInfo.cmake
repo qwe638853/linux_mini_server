@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/linux_mini_server/v1/src/debug.c" "CMakeFiles/sysinfo.dir/src/debug.c.o" "gcc" "CMakeFiles/sysinfo.dir/src/debug.c.o.d"
   "/home/linux_mini_server/v1/src/sysinfo.c" "CMakeFiles/sysinfo.dir/src/sysinfo.c.o" "gcc" "CMakeFiles/sysinfo.dir/src/sysinfo.c.o.d"
   )
 

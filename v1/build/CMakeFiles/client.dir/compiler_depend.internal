@@ -3,6 +3,7 @@
 
 CMakeFiles/client.dir/src/client.c.o
  /home/linux_mini_server/v1/src/client.c
+ /home/linux_mini_server/v1/include/debug.h
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
  /usr/include/asm-generic/bitsperlong.h

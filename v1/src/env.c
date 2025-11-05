@@ -1,16 +1,20 @@
 #include "env.h"
+#include "debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int load_env_file(const char *filename){
+    INFO_LOG(stderr, "load_env_file: Loading from '%s'\n", filename ? filename : "NULL");
     // 檢查參數有效性
     if (filename == NULL) {
+        ERROR_LOG(stderr, "load_env_file: filename cannot be NULL\n");
         fprintf(stderr, "Error: filename cannot be NULL\n");
         return -1;
     }
     
     if (filename[0] == '\0') {
+        ERROR_LOG(stderr, "load_env_file: filename cannot be empty\n");
         fprintf(stderr, "Error: filename cannot be empty\n");
         return -1;
     }
@@ -18,10 +22,12 @@ int load_env_file(const char *filename){
     // 打開檔案
     FILE *f = fopen(filename, "r");
     if (!f) {
+        ERROR_LOG(stderr, "load_env_file: Failed to open file '%s'\n", filename);
         fprintf(stderr, "Error: Failed to open file '%s': ", filename);
         perror(NULL);
         return -1;
     }
+    DEBUG_LOG(stderr, "load_env_file: File opened successfully\n");
     
     char line[1024];
     int line_num = 0;
@@ -30,6 +36,11 @@ int load_env_file(const char *filename){
     // 逐行讀取
     while (fgets(line, sizeof(line), f) != NULL) {
         line_num++;
+        
+        // 檢查是否因為緩衝區太小而截斷（行太長）
+        if(strlen(line) == sizeof(line) - 1 && line[sizeof(line) - 2] != '\n'){
+            WARN_LOG(stderr, "load_env_file: Line %d too long, may be truncated\n", line_num);
+        }
         
         // 移除換行符和回車符
         size_t len = strlen(line);
@@ -57,6 +68,7 @@ int load_env_file(const char *filename){
         // 尋找等號
         char *eq = strchr(start, '=');
         if (eq == NULL) {
+            WARN_LOG(stderr, "load_env_file: Line %d: No '=' found, skipping\n", line_num);
             fprintf(stderr, "Warning: Line %d: No '=' found, skipping\n", line_num);
             continue;
         }
@@ -75,6 +87,7 @@ int load_env_file(const char *filename){
         
         // 檢查鍵是否為空
         if (key[0] == '\0') {
+            WARN_LOG(stderr, "load_env_file: Line %d: Empty key, skipping\n", line_num);
             fprintf(stderr, "Warning: Line %d: Empty key, skipping\n", line_num);
             continue;
         }
@@ -106,7 +119,9 @@ int load_env_file(const char *filename){
         }
         
         // 設置環境變數（如果已存在則不覆蓋，使用 0）
+        DEBUG_LOG(stderr, "load_env_file: Setting %s = %s\n", key, value);
         if (setenv(key, value, 0) != 0) {
+            ERROR_LOG(stderr, "load_env_file: Failed to set environment variable '%s'\n", key);
             fprintf(stderr, "Error: Failed to set environment variable '%s': ", key);
             perror(NULL);
             fclose(f);
@@ -117,6 +132,7 @@ int load_env_file(const char *filename){
     
     // 檢查讀取錯誤
     if (ferror(f)) {
+        ERROR_LOG(stderr, "load_env_file: Error reading file '%s'\n", filename);
         fprintf(stderr, "Error: Error reading file '%s'\n", filename);
         fclose(f);
         return -1;
@@ -125,7 +141,10 @@ int load_env_file(const char *filename){
     fclose(f);
     
     if (success_count == 0) {
+        WARN_LOG(stderr, "load_env_file: No environment variables loaded from '%s'\n", filename);
         fprintf(stderr, "Warning: No environment variables loaded from '%s'\n", filename);
+    } else {
+        INFO_LOG(stderr, "load_env_file: Successfully loaded %d environment variables from '%s'\n", success_count, filename);
     }
     
     return 0;

@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/sysinfo.dir/src/debug.c.o"
+  "CMakeFiles/sysinfo.dir/src/debug.c.o.d"
   "CMakeFiles/sysinfo.dir/src/sysinfo.c.o"
   "CMakeFiles/sysinfo.dir/src/sysinfo.c.o.d"
   "lib/libsysinfo.pdb"

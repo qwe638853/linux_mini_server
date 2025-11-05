@@ -92,6 +92,7 @@ client_EXTERNAL_OBJECTS =
 
 bin/client: CMakeFiles/client.dir/src/client.c.o
 bin/client: CMakeFiles/client.dir/build.make
+bin/client: lib/libutility.so
 bin/client: CMakeFiles/client.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/linux_mini_server/v1/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable bin/client"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/client.dir/link.txt --verbose=$(VERBOSE)

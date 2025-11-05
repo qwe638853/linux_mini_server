@@ -1,1 +1,1 @@
-/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/client.dir/src/client.c.o -o bin/client 
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/client.dir/src/client.c.o -o bin/client  -Wl,-rpath,/home/linux_mini_server/v1/build/lib lib/libutility.so 

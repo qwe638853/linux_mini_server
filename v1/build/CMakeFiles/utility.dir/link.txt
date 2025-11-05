@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC  -Wall -Wextra -Werror -shared -Wl,-soname,libutility.so -o lib/libutility.so CMakeFiles/utility.dir/src/debug.c.o 
