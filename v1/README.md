@@ -150,23 +150,64 @@ client
 
 The application implements comprehensive error handling and robustness mechanisms to ensure reliable operation:
 
-### Error Handling Coverage
+### 1) Read Timeout Protection (Prevent Infinite Blocking)
 
-- **System Call Errors**: All system calls (socket, bind, accept, fork, etc.) check return values
-- **Memory Management**: All malloc() and strdup() calls check for NULL returns
-- **File I/O**: fopen(), fgets(), fprintf(), fclose() all have error handling
-- **Network Operations**: Socket operations include proper error checking and resource cleanup
-- **Signal Handling**: SIGCHLD and SIGPIPE are properly handled to prevent crashes
+#### Description
+Before reading client commands, the server uses `select()` to check whether the socket is ready for reading with a 30-second timeout.  
+If no data is received within this period, the server logs a warning and safely terminates the child process.  
+This prevents a blocked child process from consuming system resources indefinitely.
 
-### Key Features
+#### Key Code Snippet
+```c
+// Use select() to check socket readability with a timeout
+fd_set readfds;
+struct timeval select_timeout;
+FD_ZERO(&readfds);
+FD_SET(cfd, &readfds);
+select_timeout.tv_sec = 30;
+select_timeout.tv_usec = 0;
 
-- **Graceful Degradation**: Single operation failures don't crash the server
-- **Resource Cleanup**: All error paths properly clean up allocated resources
-- **Error Logging**: Comprehensive logging system with multiple log levels
-- **Input Validation**: NULL checks, empty string checks, and buffer overflow protection
+int select_result = select(cfd + 1, &readfds, NULL, NULL, &select_timeout);
+if (select_result <= 0) {
+    if (select_result == 0) {
+        WARN_LOG(stderr, "No command received: timeout waiting for data\n");
+    } else {
+        WARN_LOG(stderr, "No command received: select() error\n");
+        perror("select");
+    }
+    cleanup_and_exit(client_fp, cfd);
+}
+```
+#### without Timeout Protection 
 
-For detailed information, see [ROBUSTNESS.md](ROBUSTNESS.md) and [ROBUSTNESS_EXAMPLES.md](ROBUSTNESS_EXAMPLES.md).
+To demonstrate the impact of not having a read timeout, we use nc to open a client connection that never sends any data.
+Then, by running the command ss -tanp | grep 9734, we can observe that the server keeps the connection in the ESTAB (established) state indefinitely.
 
+![timeout_response2.png](image/timeout_response2.png)
+
+A single idle client might not seem like a problem, but what if many clients behave the same way?
+Without timeout protection, these idle connections accumulate and remain in the ESTAB state, consuming system resources such as file descriptors and process slots over time.
+
+
+![timeout_response.png](image/timeout_response.png)
+
+
+
+#### with Timeout Protection 
+
+We use `nc` to simulate a client connection that does not send any data, in order to test the timeout mechanism
+
+![nc](image/nc.png)
+
+As shown below, the server automatically closes the connection after 30 seconds of inactivity, logging a timeout warning.
+
+![timeout_response](image/timeout_response.png)
+
+To verify that the connection has been closed, we can use the `ss -tanp | grep 9734`
+
+![ss_tanp](image/ss_tanp.png)
+
+The result shows that no lingering ESTAB (established) connections remain after the timeout, demonstrating that the mechanism successfully prevents idle clients from occupying system resources indefinitely.
 
 
 ## Build system
