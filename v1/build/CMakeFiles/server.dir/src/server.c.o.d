@@ -98,7 +98,8 @@ CMakeFiles/server.dir/src/server.c.o: \
  /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/strings.h /home/linux_mini_server/v1/include/sysinfo.h \
+ /usr/include/strings.h /usr/include/x86_64-linux-gnu/sys/time.h \
+ /home/linux_mini_server/v1/include/sysinfo.h \
  /home/linux_mini_server/v1/include/debug.h \
  /home/linux_mini_server/v1/include/smtp.h \
  /home/linux_mini_server/v1/include/env.h

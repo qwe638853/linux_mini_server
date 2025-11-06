@@ -333,6 +333,394 @@ Broken pipe
 
 ---
 
+---
+
+## 範例 6: 客戶端連接但不發送數據（超時處理）⭐ 容易測試
+
+### 場景說明
+客戶端連接到服務器後，可能因為網路問題或程式錯誤而不發送任何數據。服務器應該設置超時，避免無限期等待。
+
+### 有穩健性機制的行為（當前實作）
+
+```c
+// server.c:155-163
+// 設置 socket 讀取超時（30秒），防止客戶端連接後不發送數據
+struct timeval timeout;
+timeout.tv_sec = 30;
+timeout.tv_usec = 0;
+if (setsockopt(cfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+    WARN_LOG(stderr, "setsockopt(SO_RCVTIMEO) failed\n");
+    perror("setsockopt");
+    // 非致命錯誤，繼續執行
+}
+```
+
+```c
+// server.c:281-289
+} else {
+    // 如果沒有收到指令（可能是客戶端斷開或超時）
+    if (ferror(client_fp)) {
+        ERROR_LOG(stderr, "Error reading from client (client may have disconnected)\n");
+    } else if (feof(client_fp)) {
+        WARN_LOG(stderr, "Client closed connection before sending command\n");
+    } else {
+        WARN_LOG(stderr, "No command received (timeout or empty input), sending default system info\n");
+    }
+```
+
+**測試方法：**
+```bash
+# 終端 1：啟動服務器
+$ cd build && ./server
+server listening on 127.0.0.1:9734
+
+# 終端 2：連接但不發送任何數據（等待 30 秒以上）
+$ nc 127.0.0.1 9734
+# 不輸入任何內容，等待...
+
+# 服務器日誌（30秒後）：
+[WARN] No command received (timeout or empty input), sending default system info
+# 服務器繼續運行，可以處理下一個連接
+```
+
+**執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+[WARN] No command received (timeout or empty input), sending default system info
+# 服務器在超時後繼續運行，可以接受新連接
+```
+
+**關鍵行為：**
+- ✅ 設置 30 秒讀取超時
+- ✅ 檢測超時情況並記錄
+- ✅ 服務器繼續運行，不阻塞
+- ✅ 可以處理後續連接請求
+
+### 沒有穩健性機制的行為（假設）
+
+```c
+// 假設的錯誤實作
+FILE *client_fp = fdopen(cfd, "r+");
+fgets(command, sizeof(command), client_fp);  // 無限期等待
+```
+
+**可能的執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+# 子進程永遠阻塞在 fgets()，等待客戶端發送數據
+# 資源被佔用，無法處理其他連接
+# 如果多個客戶端都這樣，服務器會耗盡進程資源
+```
+
+**問題：**
+- ❌ 子進程無限期阻塞
+- ❌ 資源（進程、socket）被佔用
+- ❌ 無法處理其他連接請求
+- ❌ 可能導致服務器資源耗盡
+
+---
+
+## 範例 7: 超長輸入處理（緩衝區溢出防護）⭐ 容易測試
+
+### 場景說明
+客戶端可能發送超過緩衝區大小的命令。服務器應該檢測並處理這種情況，防止緩衝區溢出。
+
+### 有穩健性機制的行為（當前實作）
+
+```c
+// server.c:182-189
+if (fgets(command, sizeof(command), client_fp) != NULL) {
+    // 檢查是否因為緩衝區太小而截斷（行太長）
+    if(strlen(command) == sizeof(command) - 1 && command[sizeof(command) - 2] != '\n'){
+        WARN_LOG(stderr, "Command line too long, may be truncated\n");
+        // 清空輸入緩衝區，避免後續讀取錯誤
+        int c;
+        while ((c = fgetc(client_fp)) != EOF && c != '\n');
+    }
+```
+
+**測試方法：**
+```bash
+# 終端 1：啟動服務器
+$ cd build && ./server
+
+# 終端 2：發送超長命令（超過 256 字節）
+$ python3 -c "print('A' * 300)" | nc 127.0.0.1 9734
+
+# 服務器日誌：
+[WARN] Command line too long, may be truncated
+# 服務器繼續運行，不會崩潰
+```
+
+**執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+[WARN] Command line too long, may be truncated
+# 命令被截斷，但服務器繼續運行
+# 清空剩餘輸入，避免影響後續讀取
+```
+
+**關鍵行為：**
+- ✅ 檢測超長輸入（緩衝區溢出風險）
+- ✅ 記錄警告訊息
+- ✅ 清空輸入緩衝區，避免後續錯誤
+- ✅ 服務器繼續運行，不會崩潰
+
+### 沒有穩健性機制的行為（假設）
+
+```c
+// 假設的錯誤實作
+char command[256];
+fgets(command, sizeof(command), client_fp);
+// 沒有檢查是否截斷
+strcmp(command, "SENDMAIL");  // 可能使用截斷的命令
+```
+
+**可能的執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+# 命令被截斷但未檢測
+# 後續讀取可能讀到錯誤的數據
+# 可能導致邏輯錯誤或安全問題
+```
+
+**問題：**
+- ❌ 未檢測緩衝區溢出風險
+- ❌ 可能導致邏輯錯誤
+- ❌ 後續讀取可能讀到錯誤數據
+- ❌ 潛在的安全風險
+
+---
+
+## 範例 8: 空命令驗證 ⭐ 容易測試
+
+### 場景說明
+客戶端可能發送空命令（只有換行符）。服務器應該驗證並拒絕空命令。
+
+### 有穩健性機制的行為（當前實作）
+
+```c
+// server.c:193-201
+// 驗證命令不為空
+if (strlen(command) == 0) {
+    WARN_LOG(stderr, "Empty command received\n");
+    fprintf(client_fp, "Error: Empty command\n");
+    fflush(client_fp);
+    fclose(client_fp);
+    close(cfd);
+    exit(0);
+}
+```
+
+**測試方法：**
+```bash
+# 終端 1：啟動服務器
+$ cd build && ./server
+
+# 終端 2：發送空命令
+$ echo "" | nc 127.0.0.1 9734
+# 或
+$ printf "\n" | nc 127.0.0.1 9734
+
+# 服務器回應：
+Error: Empty command
+```
+
+**執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+[WARN] Empty command received
+# 發送錯誤訊息給客戶端
+# 子進程正確退出
+# 服務器繼續運行
+```
+
+**關鍵行為：**
+- ✅ 驗證命令不為空
+- ✅ 發送錯誤訊息給客戶端
+- ✅ 正確清理資源並退出
+- ✅ 服務器繼續運行
+
+### 沒有穩健性機制的行為（假設）
+
+```c
+// 假設的錯誤實作
+char command[256];
+fgets(command, sizeof(command), client_fp);
+if (strcmp(command, "SENDMAIL") == 0) {
+    // 處理郵件
+} else {
+    // 處理系統資訊
+}
+// 如果 command 為空，會進入 else 分支，可能導致意外行為
+```
+
+**可能的執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+# 空命令被當作普通命令處理
+# 可能導致意外的系統資訊請求
+# 或邏輯錯誤
+```
+
+**問題：**
+- ❌ 未驗證空命令
+- ❌ 可能導致意外的行為
+- ❌ 浪費資源處理無效請求
+
+---
+
+## 範例 9: 客戶端斷開連接檢測 ⭐ 容易測試
+
+### 場景說明
+客戶端可能在服務器讀取或寫入時突然斷開連接。服務器應該檢測並優雅處理。
+
+### 有穩健性機制的行為（當前實作）
+
+```c
+// server.c:281-309
+} else {
+    // 如果沒有收到指令（可能是客戶端斷開或超時）
+    if (ferror(client_fp)) {
+        ERROR_LOG(stderr, "Error reading from client (client may have disconnected)\n");
+    } else if (feof(client_fp)) {
+        WARN_LOG(stderr, "Client closed connection before sending command\n");
+    } else {
+        WARN_LOG(stderr, "No command received (timeout or empty input), sending default system info\n");
+    }
+    
+    // 只有在連接仍然有效時才發送回應
+    if (!ferror(client_fp) && !feof(client_fp)) {
+        // 發送回應
+    }
+}
+```
+
+**測試方法：**
+```bash
+# 終端 1：啟動服務器
+$ cd build && ./server
+
+# 終端 2：連接後立即斷開
+$ (sleep 0.1; echo "SYSINFO") | nc 127.0.0.1 9734 &
+$ sleep 0.2
+$ killall nc  # 立即斷開
+
+# 服務器日誌：
+[WARN] Client closed connection before sending command
+# 或
+[ERROR] Error reading from client (client may have disconnected)
+```
+
+**執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+[WARN] Client closed connection before sending command
+# 服務器檢測到斷開，不嘗試寫入
+# 正確清理資源
+# 服務器繼續運行
+```
+
+**關鍵行為：**
+- ✅ 使用 `ferror()` 和 `feof()` 檢測連接狀態
+- ✅ 只在連接有效時才寫入
+- ✅ 正確清理資源
+- ✅ 服務器繼續運行
+
+### 沒有穩健性機制的行為（假設）
+
+```c
+// 假設的錯誤實作
+FILE *client_fp = fdopen(cfd, "r+");
+fgets(command, sizeof(command), client_fp);
+// 如果客戶端已斷開，fgets 返回 NULL
+// 但沒有檢查，繼續執行
+fprintf(client_fp, "Response\n");  // 可能失敗或收到 SIGPIPE
+```
+
+**可能的執行結果：**
+```
+[INFO] Client connected from 127.0.0.1:54321
+[DEBUG] Child process started (PID: 12345)
+Broken pipe  # 收到 SIGPIPE 信號
+# 如果沒有處理 SIGPIPE，程式可能崩潰
+```
+
+**問題：**
+- ❌ 未檢測客戶端斷開
+- ❌ 可能收到 SIGPIPE 導致崩潰
+- ❌ 浪費資源嘗試寫入已關閉的連接
+
+---
+
+## 快速測試指南
+
+### 使用自動化測試腳本
+
+我們提供了一個自動化測試腳本，可以快速測試所有健壯性機制：
+
+```bash
+# 確保程序已編譯
+cd build
+cmake ..
+make
+
+# 運行測試腳本
+cd ..
+./test_robustness.sh
+```
+
+測試腳本會自動測試：
+1. ✅ 端口已被占用
+2. ✅ 客戶端突然斷開連接
+3. ✅ 超長輸入處理
+4. ✅ 客戶端連接超時
+5. ✅ 空命令處理
+6. ✅ 多個客戶端同時連接
+
+### 手動測試方法
+
+#### 測試 1: 端口占用（最容易測試）
+```bash
+# 終端 1
+$ cd build && ./server
+
+# 終端 2（應該失敗）
+$ cd build && ./server
+# 應該看到: bind() failed: Address already in use
+```
+
+#### 測試 2: 客戶端斷開（最容易測試）
+```bash
+# 終端 1
+$ cd build && ./server
+
+# 終端 2
+$ nc 127.0.0.1 9734 &
+$ sleep 0.1
+$ killall nc
+# 服務器應該繼續運行，不會崩潰
+```
+
+#### 測試 3: 超長輸入（最容易測試）
+```bash
+# 終端 1
+$ cd build && ./server
+
+# 終端 2
+$ python3 -c "print('A' * 300)" | nc 127.0.0.1 9734
+# 服務器應該記錄警告但繼續運行
+```
+
+---
+
 ## 總結
 
 這些範例展示了穩健性機制的關鍵價值：
@@ -342,6 +730,17 @@ Broken pipe
 3. **錯誤檢測** - 及時發現並記錄錯誤
 4. **服務連續性** - Server 在各種錯誤情況下保持運行
 5. **可維護性** - 詳細的錯誤日誌便於診斷問題
+6. **超時處理** - 防止資源被無限期佔用
+7. **輸入驗證** - 防止緩衝區溢出和無效輸入
+8. **連接狀態檢測** - 優雅處理客戶端斷開
 
 沒有這些機制時，程式可能在各種錯誤情況下崩潰、洩漏資源，或進入錯誤狀態，導致服務不可用。
+
+### 最容易測試的場景（推薦）
+
+1. ⭐⭐⭐ **端口占用** - 啟動兩個服務器，第二個應該失敗
+2. ⭐⭐⭐ **客戶端斷開** - 使用 `nc` 連接後立即 `killall nc`
+3. ⭐⭐ **超長輸入** - 發送超過 256 字節的命令
+4. ⭐⭐ **空命令** - 發送只有換行符的命令
+5. ⭐ **超時處理** - 連接後等待 30 秒不發送數據
 

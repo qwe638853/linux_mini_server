@@ -172,6 +172,7 @@ CMakeFiles/server.dir/src/server.c.o: /home/linux_mini_server/v1/src/server.c \
   /usr/include/x86_64-linux-gnu/sys/cdefs.h \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
+  /usr/include/x86_64-linux-gnu/sys/time.h \
   /usr/include/x86_64-linux-gnu/sys/types.h \
   /usr/include/x86_64-linux-gnu/sys/ucontext.h \
   /usr/include/x86_64-linux-gnu/sys/wait.h \
@@ -457,8 +458,6 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h:
 
-/usr/include/x86_64-linux-gnu/sys/time.h:
-
 /usr/include/x86_64-linux-gnu/curl/websockets.h:
 
 /usr/include/x86_64-linux-gnu/sys/sysinfo.h:
@@ -476,6 +475,12 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 /usr/include/x86_64-linux-gnu/curl/header.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/netpacket/packet.h:
+
+/home/linux_mini_server/v1/src/sysinfo.c:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
 
 /usr/include/x86_64-linux-gnu/bits/environments.h:
 
@@ -739,6 +744,8 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
 
+/usr/include/x86_64-linux-gnu/sys/time.h:
+
 /usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
@@ -760,9 +767,3 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 /usr/include/stdint.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
-
-/usr/include/netpacket/packet.h:
-
-/home/linux_mini_server/v1/src/sysinfo.c:
-
-/usr/include/x86_64-linux-gnu/bits/time.h:

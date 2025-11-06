@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "debug.h"
 
 #define PORT 9734
@@ -64,6 +65,19 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     address.sin_port = htons(PORT);
+
+    // 設置連接超時（10秒）
+    struct timeval timeout;
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+        WARN_LOG(stderr, "setsockopt(SO_SNDTIMEO) failed\n");
+        perror("setsockopt");
+    }
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        WARN_LOG(stderr, "setsockopt(SO_RCVTIMEO) failed\n");
+        perror("setsockopt");
+    }
 
     // 2️⃣ 連線
     INFO_LOG(stderr, "Connecting to server 127.0.0.1:%d...\n", PORT);
@@ -147,7 +161,8 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
         } else {
-            // 不發送任何指令，讓伺服器使用預設行為
+            // 發送 SYSINFO 指令（與 nc 不同：nc 不發送任何東西會觸發 server 的超時處理）
+            // 這裡明確發送 SYSINFO 可以立即獲得回應，而不需要等待超時
             INFO_LOG(stderr, "Sending SYSINFO command\n");
             if(fprintf(server_fp, "SYSINFO\n") < 0){
                 ERROR_LOG(stderr, "Failed to send command to server\n");
