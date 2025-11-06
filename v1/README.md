@@ -1,4 +1,4 @@
-# Server-Client Application
+<img width="1405" height="302" alt="image" src="https://github.com/user-attachments/assets/0937cc7c-ca21-449f-965f-a116a2267ed0" /># Server-Client Application
 
 A simple client-server application that can query system information or send emails.
 
@@ -46,30 +46,40 @@ The server uses `fork()` to create a separate child process for each client conn
 
 ## Packet capture and analysis
 
-You can capture and analyze network packets between the client and server using tools like `tcpdump` or `wireshark`.
+This section demonstrates the process of capturing and analyzing TCP communication between the client and server using tcpdump and Wireshark.
 
-### Using tcpdump
+### Capture Packets with `tcpdump`
 
 ```bash
 # Capture packets on localhost port 9734
 sudo tcpdump -i lo -w capture.pcap port 9734
-
-# Or monitor in real-time
-sudo tcpdump -i lo -X port 9734
 ```
+After running this command while the client and server are communicating, press Ctrl + C to stop capturing.
+A file named capture.pcap will be generated.
 
-### Using wireshark
+### Analyze with `Wireshark`
 
-1. Start capturing on loopback interface (`lo`)
-2. Filter by `tcp.port == 9734`
-3. Analyze the TCP handshake, data exchange, and connection termination
+```bash
+wireshark capture.pcap
+```
+Open the capture.pcap file with Wireshark to visualize the TCP handshake and data exchange.
 
-### Protocol Analysis
 
-The communication follows a simple text protocol:
-- Client sends commands as text lines terminated with `\n`
-- Server responds with text output, also newline-terminated
-- Commands: `SENDMAIL` (with email details) or any other command (defaults to system info)
+### TCP Handshake and Data Flow Analysis
+
+<img width="1429" height="220" alt="image" src="https://github.com/user-attachments/assets/7362ea4c-f9c1-49bb-87ca-853adc29342a" />
+
+From the capture above:
+
+Packets 1–3 represent the three-way handshake (SYN → SYN/ACK → ACK) between the client and server.
+
+Packets 4–12 show the data transfer phase, where the client and server exchange PSH, ACK packets (data segments).
+
+Packets 13–14 show the connection termination (FIN, ACK → ACK).
+
+Source and Destination: Both are 127.0.0.1, indicating communication over the loopback interface (local testing).
+Protocol: TCP (Transmission Control Protocol).
+Ports: Client (37118) ↔ Server (9734).
 
 
 ## Two levels of debug log control
