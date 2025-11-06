@@ -203,7 +203,7 @@ int main(int argc, char *argv[]){
             char subject[256];
             char body[1024];
             
-            // 使用 select() 檢查 socket 是否可讀（實現超時）
+            /* 使用 select() 檢查 socket 是否可讀（實現超時）
             fd_set readfds;
             struct timeval select_timeout;
             FD_ZERO(&readfds);
@@ -222,6 +222,7 @@ int main(int argc, char *argv[]){
                 }
                 cleanup_and_exit(client_fp, cfd);
             }
+                */
             
             // 讀取指令（socket 可讀，可以安全調用 fgets）
             if (fgets(command, sizeof(command), client_fp) != NULL) {
