@@ -1,4 +1,4 @@
-<img width="1405" height="302" alt="image" src="https://github.com/user-attachments/assets/0937cc7c-ca21-449f-965f-a116a2267ed0" /># Server-Client Application
+# Server-Client Application
 
 A simple client-server application that can query system information or send emails.
 
