@@ -54,7 +54,7 @@ static void send_system_info(FILE *client_fp) {
     if(fflush(client_fp) != 0){
         WARN_LOG(stderr, "fflush() failed\n");
     }
-
+    sleep(10);
     get_hostname(client_fp);
     get_local_time(client_fp);
     get_os_info(client_fp);

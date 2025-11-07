@@ -34,6 +34,10 @@ The server uses `fork()` to create a separate child process for each client conn
 
 ![10 Clients Concurrent Connection](image/10client.png)
 
+We also verified the process hierarchy using pstree
+
+![pstree](image/pstree.png)
+
 ### Concurrency Model
 
 - **Process-based**: Each client connection runs in its own process
