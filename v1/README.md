@@ -112,8 +112,8 @@ DEBUG_LOG=1 DEBUG_LOG_LEVEL=3 ./build/bin/client
 
 **Command-line Arguments:**
 ```bash
-./build/bin/server --debug 3
-./build/bin/client -d 2
+./build/bin/server --debug 
+./build/bin/client -d 
 ```
 
 ### Log Levels
