@@ -71,12 +71,16 @@ CMakeFiles/server.dir/src/server.c.o: /home/linux_mini_server/v1/src/server.c \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
   /usr/include/asm-generic/bitsperlong.h \
+  /usr/include/asm-generic/errno-base.h \
+  /usr/include/asm-generic/errno.h \
   /usr/include/asm-generic/posix_types.h \
   /usr/include/asm-generic/socket.h \
   /usr/include/asm-generic/sockios.h \
   /usr/include/endian.h \
+  /usr/include/errno.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
+  /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/stddef.h \
   /usr/include/netinet/in.h \
@@ -88,6 +92,7 @@ CMakeFiles/server.dir/src/server.c.o: /home/linux_mini_server/v1/src/server.c \
   /usr/include/strings.h \
   /usr/include/unistd.h \
   /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
+  /usr/include/x86_64-linux-gnu/asm/errno.h \
   /usr/include/x86_64-linux-gnu/asm/posix_types.h \
   /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
   /usr/include/x86_64-linux-gnu/asm/socket.h \
@@ -98,6 +103,7 @@ CMakeFiles/server.dir/src/server.c.o: /home/linux_mini_server/v1/src/server.c \
   /usr/include/x86_64-linux-gnu/bits/endian.h \
   /usr/include/x86_64-linux-gnu/bits/endianness.h \
   /usr/include/x86_64-linux-gnu/bits/environments.h \
+  /usr/include/x86_64-linux-gnu/bits/errno.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
@@ -482,6 +488,10 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/x86_64-linux-gnu/bits/time.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthread_stack_min.h:
+
 /usr/include/x86_64-linux-gnu/bits/environments.h:
 
 /usr/include/x86_64-linux-gnu/bits/waitstatus.h:
@@ -500,11 +510,7 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
-/usr/include/x86_64-linux-gnu/bits/pthread_stack_min.h:
-
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
@@ -556,13 +562,21 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/stdlib.h:
 
-/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
+/usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
 /usr/include/alloca.h:
 
 /home/linux_mini_server/v1/src/env.c:
+
+/usr/include/asm-generic/errno.h:
 
 /usr/include/x86_64-linux-gnu/bits/floatn-common.h:
 
@@ -614,6 +628,10 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/asm-generic/bitsperlong.h:
+
 /usr/include/features-time64.h:
 
 /home/linux_mini_server/v1/include/debug.h:
@@ -623,6 +641,10 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
+
+/usr/include/x86_64-linux-gnu/asm/errno.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
@@ -656,15 +678,15 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/asm-generic/sockios.h:
 
-/usr/include/asm-generic/bitsperlong.h:
+/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
-/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+/usr/include/linux/errno.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
 
 /usr/include/linux/posix_types.h:
 
 /usr/include/x86_64-linux-gnu/asm/sockios.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
 
 /usr/include/linux/stddef.h:
 
@@ -685,6 +707,8 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 /usr/include/x86_64-linux-gnu/bits/sockaddr.h:
 
 /usr/include/asm-generic/types.h:
+
+/usr/include/asm-generic/errno-base.h:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
 
@@ -726,9 +750,9 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
+/usr/include/errno.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
 
@@ -756,14 +780,8 @@ CMakeFiles/server.dir/src/sysinfo.c.o: /home/linux_mini_server/v1/src/sysinfo.c 
 
 /home/linux_mini_server/v1/src/smtp.c:
 
-/usr/include/x86_64-linux-gnu/bits/wchar.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
-
-/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
 
 /usr/include/linux/limits.h:
 
 /usr/include/stdint.h:
-
-/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:

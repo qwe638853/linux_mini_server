@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include "sysinfo.h"
@@ -15,6 +16,15 @@
 #include "env.h"
 #include "debug.h"
 
+// 全局變量：標記是否需要退出服務器
+static volatile sig_atomic_t server_should_exit = 0;
+
+// SIGQUIT 處理函數：設置退出標記
+static void sigquit_handler(int sig) {
+    (void)sig; // 避免未使用參數警告
+    server_should_exit = 1;
+    INFO_LOG(stderr, "Received SIGQUIT, server will exit gracefully\n");
+}
 
 ssize_t read_line(int fd, char *buf, size_t size) {
     DEBUG_LOG(stderr, "read_line: reading from fd %d, buffer size %zu\n", fd, size);
@@ -159,17 +169,50 @@ int main(int argc, char *argv[]){
         // 非致命錯誤，繼續執行
     }
     
+    // 設置 SIGINT (Ctrl+C) 為忽略，不退出服務器
+    struct sigaction sa_int;
+    memset(&sa_int, 0, sizeof(sa_int));
+    sa_int.sa_handler = SIG_IGN;
+    if(sigaction(SIGINT, &sa_int, NULL) < 0){
+        WARN_LOG(stderr, "sigaction(SIGINT) failed\n");
+        perror("sigaction");
+        // 非致命錯誤，繼續執行
+    }
+    
+    // 設置 SIGQUIT (Ctrl+/) 處理函數，用於優雅退出
+    // 注意：不使用 SA_RESTART，以便 accept() 可以被中斷
+    struct sigaction sa_quit;
+    memset(&sa_quit, 0, sizeof(sa_quit));
+    sa_quit.sa_handler = sigquit_handler;
+    sa_quit.sa_flags = 0; // 不使用 SA_RESTART，允許 accept() 被中斷
+    if(sigaction(SIGQUIT, &sa_quit, NULL) < 0){
+        WARN_LOG(stderr, "sigaction(SIGQUIT) failed\n");
+        perror("sigaction");
+        // 非致命錯誤，繼續執行
+    }
+    
     DEBUG_LOG(stderr, "Signal handlers configured\n");
+    INFO_LOG(stderr, "Press Ctrl+/ (SIGQUIT) to exit server, Ctrl+C (SIGINT) is ignored\n");
     
     printf("server listening on 127.0.0.1:9734\n");
+    printf("Press Ctrl+/ to exit server (Ctrl+C is ignored)\n");
 
 
-    while(1){
+    while(!server_should_exit){
         struct sockaddr_in cli;
         socklen_t clilen = sizeof(cli);
         DEBUG_LOG(stderr, "Waiting for client connection...\n");
         int cfd = accept(server_sockfd, (struct sockaddr *)&cli, &clilen);
         if (cfd < 0) {
+            // 檢查是否因為收到 SIGQUIT 而被中斷
+            if (errno == EINTR && server_should_exit) {
+                DEBUG_LOG(stderr, "accept() interrupted by SIGQUIT, exiting...\n");
+                break;
+            }
+            // 如果是其他中斷但不是退出信號，繼續等待
+            if (errno == EINTR) {
+                continue;
+            }
             ERROR_LOG(stderr, "accept() failed\n");
             perror("accept");
             continue;
@@ -224,47 +267,54 @@ int main(int argc, char *argv[]){
                 cleanup_and_exit(client_fp, cfd);
             }
         
+            // 限制讀取數據量，防止大量數據攻擊
+            // 使用 read() 直接讀取，最多讀取 256 字節（命令緩衝區大小）
+            char temp_buf[256];
+            ssize_t bytes_read = read(cfd, temp_buf, sizeof(temp_buf) - 1);
+            if (bytes_read <= 0) {
+                WARN_LOG(stderr, "Failed to read command or connection closed\n");
+                cleanup_and_exit(client_fp, cfd);
+            }
+            temp_buf[bytes_read] = '\0';
+            
+            // 檢查是否有換行符
+            char *newline = strchr(temp_buf, '\n');
+            
+            if (newline == NULL && bytes_read == sizeof(temp_buf) - 1) {
+                // 沒有換行符且緩衝區滿了，可能是大量數據攻擊
+                WARN_LOG(stderr, "Large data stream detected without newline, closing connection\n");
+                cleanup_and_exit(client_fp, cfd);
+            }
+            
+            // 將數據複製到 command 緩衝區
+            if (newline != NULL) {
+                *newline = '\0';
+            }
+            // 移除回車符
+            char *carriage = strchr(temp_buf, '\r');
+            if (carriage != NULL) {
+                *carriage = '\0';
+            }
+            strncpy(command, temp_buf, sizeof(command) - 1);
+            command[sizeof(command) - 1] = '\0';
             
             // 讀取指令（socket 可讀，可以安全調用 fgets）
-            if (fgets(command, sizeof(command), client_fp) != NULL) {
-                // 檢查是否因為緩衝區太小而截斷（行太長）
-                if(strlen(command) == sizeof(command) - 1 && command[sizeof(command) - 2] != '\n'){
-                    WARN_LOG(stderr, "Command line too long, may be truncated\n");
-                    // 清空輸入緩衝區，避免後續讀取錯誤
-                    int c;
-                    while ((c = fgetc(client_fp)) != EOF && c != '\n');
-                }
-                // 移除換行符
-                command[strcspn(command, "\r\n")] = '\0';
-                
-                // 驗證命令不為空
-                if (strlen(command) == 0) {
-                    WARN_LOG(stderr, "Empty command received\n");
-                    fprintf(client_fp, "Error: Empty command\n");
-                    fflush(client_fp);
-                    fclose(client_fp);
-                    close(cfd);
-                    exit(0);
-                }
-                
+            if (strlen(command) > 0) {
                 INFO_LOG(stderr, "Received command: %s\n", command);
                 
                 // 根據指令處理
                 if (strcmp(command, "SENDMAIL") == 0) {
                     INFO_LOG(stderr, "Processing SENDMAIL command\n");
-                    // 讀取收件人
-                    if (fgets(to, sizeof(to), client_fp) != NULL) {
-                        to[strcspn(to, "\r\n")] = '\0';
+                    // 讀取收件人（使用 read_line 限制讀取量）
+                    if (read_line(cfd, to, sizeof(to)) > 0) {
                         DEBUG_LOG(stderr, "To: %s\n", to);
                     }
                     // 讀取主旨
-                    if (fgets(subject, sizeof(subject), client_fp) != NULL) {
-                        subject[strcspn(subject, "\r\n")] = '\0';
+                    if (read_line(cfd, subject, sizeof(subject)) > 0) {
                         DEBUG_LOG(stderr, "Subject: %s\n", subject);
                     }
                     // 讀取內容
-                    if (fgets(body, sizeof(body), client_fp) != NULL) {
-                        body[strcspn(body, "\r\n")] = '\0';
+                    if (read_line(cfd, body, sizeof(body)) > 0) {
                         DEBUG_LOG(stderr, "Body length: %zu\n", strlen(body));
                     }
                     
@@ -298,15 +348,7 @@ int main(int argc, char *argv[]){
                 }
             } else {
                 // 如果沒有收到指令（可能是客戶端斷開或超時）
-                if (ferror(client_fp)) {
-                    WARN_LOG(stderr, "No command received: error reading from client (client may have disconnected)\n");
-                } else if (feof(client_fp)) {
-                    WARN_LOG(stderr, "No command received: client closed connection before sending command\n");
-                } else {
-                    WARN_LOG(stderr, "No command received: timeout or empty input\n");
-                }
-                
-                // 不發送系統資訊，直接清理並退出
+                WARN_LOG(stderr, "No command received: empty command or connection issue\n");
                 cleanup_and_exit(client_fp, cfd);
             }
         } else {
@@ -316,5 +358,14 @@ int main(int argc, char *argv[]){
         }
         
     }
+    
+    // 優雅退出：關閉監聽 socket
+    INFO_LOG(stderr, "Server shutting down gracefully...\n");
+    if(close(server_sockfd) < 0){
+        WARN_LOG(stderr, "close(server_sockfd) failed\n");
+        perror("close");
+    }
+    INFO_LOG(stderr, "Server exited\n");
+    return 0;
 
 }

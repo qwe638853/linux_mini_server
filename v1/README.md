@@ -250,6 +250,75 @@ After all clients have finished executing, we check the server processes using p
 
 This demonstrates that the configured sigaction() with SA_NOCLDWAIT effectively prevents zombie accumulation, ensuring stable and reliable server operation even under heavy concurrency.
 
+### 3) Signal Handling Protection (Prevent Accidental Server Termination)
+
+#### Description
+Without proper signal handling, pressing `Ctrl+C` (SIGINT) in the terminal will immediately terminate the server process, potentially interrupting active client connections and causing data loss.  
+The server implements signal handling to ignore `Ctrl+C` (SIGINT) and uses `Ctrl+\` (SIGQUIT) for graceful shutdown. This prevents accidental termination while still allowing administrators to shut down the server when needed.
+
+#### Key Code Snippet
+```c
+// Global variable to mark server shutdown
+static volatile sig_atomic_t server_should_exit = 0;
+
+// SIGQUIT handler: set exit flag
+static void sigquit_handler(int sig) {
+    (void)sig;
+    server_should_exit = 1;
+    INFO_LOG(stderr, "Received SIGQUIT, server will exit gracefully\n");
+}
+
+// Ignore SIGINT (Ctrl+C)
+struct sigaction sa_int;
+memset(&sa_int, 0, sizeof(sa_int));
+sa_int.sa_handler = SIG_IGN;
+sigaction(SIGINT, &sa_int, NULL);
+
+// Handle SIGQUIT (Ctrl+\) for graceful shutdown
+struct sigaction sa_quit;
+memset(&sa_quit, 0, sizeof(sa_quit));
+sa_quit.sa_handler = sigquit_handler;
+sa_quit.sa_flags = 0; // Allow accept() to be interrupted
+sigaction(SIGQUIT, &sa_quit, NULL);
+```
+
+#### Without Signal Handling Protection
+
+When the server does not handle `Ctrl+C` (SIGINT), pressing `Ctrl+C` in the terminal will immediately terminate the server process:
+
+```bash
+$ ./build/bin/server
+server listening on 127.0.0.1:9734
+^C  # Press Ctrl+C
+$  # Server terminated immediately
+```
+
+**Problems:**
+- **Abrupt Termination**: Server exits immediately without cleanup
+- **Active Connections Lost**: Client connections are abruptly closed
+- **Data Loss**: In-progress operations may be interrupted
+- **No Graceful Shutdown**: Resources may not be properly released
+
+#### With Signal Handling Protection
+
+With proper signal handling, `Ctrl+C` is ignored and the server continues running. To shut down the server gracefully, use `Ctrl+\` (SIGQUIT):
+
+```bash
+$ ./build/bin/server
+server listening on 127.0.0.1:9734
+Press Ctrl+/ to exit server (Ctrl+C is ignored)
+^C  # Press Ctrl+C - nothing happens, server continues
+^\  # Press Ctrl+\ - server exits gracefully
+Server shutting down gracefully...
+Server exited
+```
+
+The protection mechanism ensures that:
+- **Accident Prevention**: `Ctrl+C` does not accidentally terminate the server
+- **Graceful Shutdown**: `Ctrl+\` allows controlled server shutdown
+- **Resource Cleanup**: Server properly closes listening socket before exit
+- **Service Continuity**: Server remains running during normal terminal operations
+
 
 ## Build system
 
