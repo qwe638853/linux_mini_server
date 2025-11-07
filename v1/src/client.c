@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     int sockfd;
     struct sockaddr_in address;
 
-    // 1️⃣ 建立 socket
+    // Step 1: Create socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         ERROR_LOG(stderr, "socket() failed\n");
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     }
     address.sin_port = htons(PORT);
 
-    // 設置連接超時（10秒）
+    // Set connection timeout (10 seconds)
     struct timeval timeout;
     timeout.tv_sec = 10;
     timeout.tv_usec = 0;
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
         perror("setsockopt");
     }
 
-    // 2️⃣ 連線
+    // Step 2: Connect
     INFO_LOG(stderr, "Connecting to server 127.0.0.1:%d...\n", PORT);
     if (connect(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         ERROR_LOG(stderr, "connect() failed\n");
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to server 127.0.0.1:%d\n", PORT);
 
-    // 3️⃣ 將 socket 轉換成 FILE* 以便使用 fprintf/fgets
+    // Step 3: Convert socket to FILE* for fprintf/fgets usage
     FILE *server_fp = fdopen(sockfd, "r+");
     if (server_fp == NULL) {
         ERROR_LOG(stderr, "fdopen() failed\n");
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     }
     DEBUG_LOG(stderr, "Server file stream opened\n");
 
-    // 4️⃣ 根據命令行參數決定要發送什麼（跳過 debug 參數）
+    // Step 4: Determine what to send based on command line arguments (skip debug arguments)
     // Find first non-debug argument
     int cmd_idx = 1;
     for (int i = 1; i < argc; i++) {
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
     }
     
     if (cmd_idx < argc && strcmp(argv[cmd_idx], "SENDMAIL") == 0) {
-        // 發送郵件模式
+        // Send email mode
         INFO_LOG(stderr, "Sending SENDMAIL command\n");
         const char *to = (cmd_idx + 1 < argc) ? argv[cmd_idx + 1] : "qwe638853@gmail.com";
         const char *subject = (cmd_idx + 2 < argc) ? argv[cmd_idx + 2] : "Test Subject";
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 
         DEBUG_LOG(stderr, "Email details - To: %s, Subject: %s\n", to, subject);
 
-        // 使用 fprintf 發送資料，每行結尾加 \n 以便伺服器的 fgets 讀取
+        // Use fprintf to send data, add \n at end of each line for server's fgets to read
         if(fprintf(server_fp, "SENDMAIL\n") < 0 ||
            fprintf(server_fp, "%s\n", to) < 0 ||
            fprintf(server_fp, "%s\n", subject) < 0 ||
@@ -151,9 +151,9 @@ int main(int argc, char *argv[]) {
         printf("  Body: %s\n", body);
 
     } else {
-        // 預設模式：獲取系統資訊（發送其他指令或空行）
+        // Default mode: get system information (send other command or empty line)
         if (cmd_idx < argc) {
-            // 發送自訂指令
+            // Send custom command
             INFO_LOG(stderr, "Sending custom command: %s\n", argv[cmd_idx]);
             if(fprintf(server_fp, "%s\n", argv[cmd_idx]) < 0){
                 ERROR_LOG(stderr, "Failed to send command to server\n");
@@ -161,8 +161,8 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
         } else {
-            // 發送 SYSINFO 指令（與 nc 不同：nc 不發送任何東西會觸發 server 的超時處理）
-            // 這裡明確發送 SYSINFO 可以立即獲得回應，而不需要等待超時
+            // Send SYSINFO command (different from nc: nc sends nothing triggers server timeout)
+            // Explicitly sending SYSINFO here gets immediate response without waiting for timeout
             INFO_LOG(stderr, "Sending SYSINFO command\n");
             if(fprintf(server_fp, "SYSINFO\n") < 0){
                 ERROR_LOG(stderr, "Failed to send command to server\n");
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // 5️⃣ 接收伺服器回覆
+    // Step 5: Receive server reply
     INFO_LOG(stderr, "Waiting for server reply...\n");
     printf("\nServer reply:\n");
     printf("----------------------------------------\n");
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
         printf("%s", buffer);
         line_count++;
     }
-    // 檢查是否因為錯誤而結束
+    // Check if ended due to error
     if(ferror(server_fp)){
         ERROR_LOG(stderr, "Error reading from server\n");
     }
@@ -196,12 +196,12 @@ int main(int argc, char *argv[]) {
     
     printf("----------------------------------------\n");
 
-    // 6️⃣ 關閉連線
+    // Step 6: Close connection
     INFO_LOG(stderr, "Closing connection\n");
     if(fclose(server_fp) != 0){
         WARN_LOG(stderr, "fclose() failed\n");
     }
-    // sockfd 已經被 fclose 關閉了，不需要再 close(sockfd)
+    // sockfd is already closed by fclose(), no need to close(sockfd) again
     
     return 0;
 }

@@ -6,7 +6,7 @@
 
 int load_env_file(const char *filename){
     INFO_LOG(stderr, "load_env_file: Loading from '%s'\n", filename ? filename : "NULL");
-    // 檢查參數有效性
+    // Check parameter validity
     if (filename == NULL) {
         ERROR_LOG(stderr, "load_env_file: filename cannot be NULL\n");
         fprintf(stderr, "Error: filename cannot be NULL\n");
@@ -19,7 +19,7 @@ int load_env_file(const char *filename){
         return -1;
     }
     
-    // 打開檔案
+    // Open file
     FILE *f = fopen(filename, "r");
     if (!f) {
         ERROR_LOG(stderr, "load_env_file: Failed to open file '%s'\n", filename);
@@ -33,39 +33,39 @@ int load_env_file(const char *filename){
     int line_num = 0;
     int success_count = 0;
     
-    // 逐行讀取
+    // Read line by line
     while (fgets(line, sizeof(line), f) != NULL) {
         line_num++;
         
-        // 檢查是否因為緩衝區太小而截斷（行太長）
+        // Check if truncated due to buffer too small (line too long)
         if(strlen(line) == sizeof(line) - 1 && line[sizeof(line) - 2] != '\n'){
             WARN_LOG(stderr, "load_env_file: Line %d too long, may be truncated\n", line_num);
         }
         
-        // 移除換行符和回車符
+        // Remove newline and carriage return
         size_t len = strlen(line);
         while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
             line[len - 1] = '\0';
             len--;
         }
         
-        // 移除前導空白字符
+        // Remove leading whitespace
         char *start = line;
         while (*start == ' ' || *start == '\t') {
             start++;
         }
         
-        // 跳過空行
+        // Skip empty lines
         if (*start == '\0') {
             continue;
         }
         
-        // 跳過註釋行（以 # 開頭）
+        // Skip comment lines (starting with #)
         if (*start == '#') {
             continue;
         }
         
-        // 尋找等號
+        // Find equals sign
         char *eq = strchr(start, '=');
         if (eq == NULL) {
             WARN_LOG(stderr, "load_env_file: Line %d: No '=' found, skipping\n", line_num);
@@ -73,31 +73,31 @@ int load_env_file(const char *filename){
             continue;
         }
         
-        // 分割鍵和值
+        // Split key and value
         *eq = '\0';
         char *key = start;
         char *value = eq + 1;
         
-        // 移除鍵尾部的空白字符
+        // Remove trailing whitespace from key
         char *key_end = key + strlen(key) - 1;
         while (key_end > key && (*key_end == ' ' || *key_end == '\t')) {
             *key_end = '\0';
             key_end--;
         }
         
-        // 檢查鍵是否為空
+        // Check if key is empty
         if (key[0] == '\0') {
             WARN_LOG(stderr, "load_env_file: Line %d: Empty key, skipping\n", line_num);
             fprintf(stderr, "Warning: Line %d: Empty key, skipping\n", line_num);
             continue;
         }
         
-        // 移除值前導空白字符
+        // Remove leading whitespace from value
         while (*value == ' ' || *value == '\t') {
             value++;
         }
         
-        // 移除值尾部的空白字符
+        // Remove trailing whitespace from value
         size_t value_len = strlen(value);
         if (value_len > 0) {
             char *value_end = value + value_len - 1;
@@ -109,7 +109,7 @@ int load_env_file(const char *filename){
             value_len = strlen(value);
         }
         
-        // 處理引號（移除前後的引號）
+        // Handle quotes (remove leading and trailing quotes)
         if (value_len > 0) {
             if ((value[0] == '"' && value[value_len - 1] == '"') ||
                 (value[0] == '\'' && value[value_len - 1] == '\'')) {
@@ -118,7 +118,7 @@ int load_env_file(const char *filename){
             }
         }
         
-        // 設置環境變數（如果已存在則不覆蓋，使用 0）
+        // Set environment variable (don't overwrite if exists, use 0)
         DEBUG_LOG(stderr, "load_env_file: Setting %s = %s\n", key, value);
         if (setenv(key, value, 0) != 0) {
             ERROR_LOG(stderr, "load_env_file: Failed to set environment variable '%s'\n", key);
@@ -130,7 +130,7 @@ int load_env_file(const char *filename){
         success_count++;
     }
     
-    // 檢查讀取錯誤
+    // Check for read errors
     if (ferror(f)) {
         ERROR_LOG(stderr, "load_env_file: Error reading file '%s'\n", filename);
         fprintf(stderr, "Error: Error reading file '%s'\n", filename);

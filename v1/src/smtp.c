@@ -40,10 +40,10 @@ static char *json_escape(const char *str){
             case '\t': *p++='\\'; *p++='t';  break;
             default:
                 if (c < 0x20) {
-                    /* 其他控制字元 */
+                    /* Other control characters */
                     int written = snprintf(p, 7, "\\u%04X", c);
                     if (written < 0 || written >= 7) {
-                        // 如果 snprintf 失敗或截斷，釋放記憶體並返回錯誤
+                        // If snprintf fails or truncates, free memory and return error
                         free(escaped);
                         return NULL;
                     }
@@ -55,9 +55,9 @@ static char *json_escape(const char *str){
     }
     *p = '\0';
     return escaped;
-}
+    }
 int send_email(const char *recipient, const char *subject, const char *body){
-    // 參數驗證
+    // Parameter validation
     if(recipient == NULL || subject == NULL || body == NULL){
         ERROR_LOG(stderr, "send_email: NULL parameter (recipient, subject, or body)\n");
         fprintf(stderr, "Error: recipient, subject, and body cannot be NULL\n");
@@ -65,8 +65,8 @@ int send_email(const char *recipient, const char *subject, const char *body){
     }
     
     INFO_LOG(stderr, "send_email: Preparing to send email to %s\n", recipient);
-    // 固定從專案根目錄載入 .env 檔案
-    // 嘗試載入常見的 .env 位置，只要有一個成功即可，否則回傳錯誤
+    // Load .env file from project root directory
+    // Try loading common .env locations, succeed if any one works, otherwise return error
     
     const char *env_paths[] = { "../../.env", "../.env", ".env" };
     int found = 0;
@@ -105,13 +105,13 @@ int send_email(const char *recipient, const char *subject, const char *body){
         return -1;
     }
 
-    // 檢查字串長度，避免溢出
+    // Check string length to avoid overflow
     size_t subject_len = strlen(escaped_subject);
     size_t body_len = strlen(escaped_body);
     size_t recipient_len = strlen(recipient);
     size_t from_len = strlen(from_email);
     
-    // 檢查是否會溢出（檢查相加是否超過 SIZE_MAX）
+    // Check for overflow (check if sum exceeds SIZE_MAX)
     const size_t MAX_SAFE_SIZE = SIZE_MAX - 256;
     if(subject_len > MAX_SAFE_SIZE || body_len > MAX_SAFE_SIZE || 
        recipient_len > MAX_SAFE_SIZE || from_len > MAX_SAFE_SIZE){
@@ -123,7 +123,7 @@ int send_email(const char *recipient, const char *subject, const char *body){
     
     size_t payload_size = subject_len + body_len + recipient_len + from_len + 256;
     
-    // 再次檢查相加後的結果
+    // Check the result after addition again
     if(payload_size < subject_len + body_len + recipient_len + from_len){
         ERROR_LOG(stderr, "Payload size calculation overflow\n");
         free(escaped_subject);

@@ -80,7 +80,7 @@ int get_memory_usage(FILE *fp){
         perror("sysinfo");
         return -1;
     }
-    // 檢查除以零的情況
+    // Check for division by zero
     if(info.totalram == 0){
         ERROR_LOG(fp, "sysinfo() returned zero total RAM\n");
         fprintf(fp, "Error: Invalid system information (zero total RAM)\n");
@@ -130,7 +130,7 @@ int get_disk_info(FILE *fp){
     unsigned long long free_bytes  = (unsigned long long)info.f_bfree  * info.f_frsize;
     unsigned long long used_bytes  = total_bytes - free_bytes;
 
-    // 檢查除以零的情況
+    // Check for division by zero
     if(total_bytes == 0){
         ERROR_LOG(fp, "statvfs() returned zero total disk space\n");
         fprintf(fp, "Error: Invalid filesystem information (zero total space)\n");
@@ -189,13 +189,13 @@ int get_network_info(FILE *fp){
         interface_count++;
         DEBUG_LOG(fp, "Processing interface: %s (family: %d)\n", ifa->ifa_name, ifa->ifa_addr->sa_family);
         
-        // 先打印介面名稱和 IPv4 地址（如果有的話）
+        // Print interface name and IPv4 address first (if available)
         if(ifa->ifa_addr->sa_family == AF_INET){
             struct sockaddr_in *sa = (struct sockaddr_in *)ifa->ifa_addr;
             DEBUG_LOG(fp, "  IPv4 address: %s\n", inet_ntoa(sa->sin_addr));
             fprintf(fp, "%s: %s\n", ifa->ifa_name, inet_ntoa(sa->sin_addr));
         } else {
-            // 非 IPv4 地址也顯示介面名稱
+            // Also show interface name for non-IPv4 addresses
             DEBUG_LOG(fp, "  Non-IPv4 interface\n");
             fprintf(fp, "%s:\n", ifa->ifa_name);
         }
@@ -208,12 +208,12 @@ int get_network_info(FILE *fp){
         struct ifreq ifr;
         memset(&ifr, 0, sizeof(ifr));
         strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
-        ifr.ifr_name[IFNAMSIZ-1] = '\0';  // 確保 null-terminated
+        ifr.ifr_name[IFNAMSIZ-1] = '\0';  // Ensure null-terminated
         
-        // 獲取 MAC 地址
+        // Get MAC address
         if(ioctl(fd, SIOCGIFHWADDR, &ifr) == 0){
             unsigned char *mac_addr = (unsigned char *)ifr.ifr_hwaddr.sa_data;
-            // 檢查是否全為 0
+            // Check if all zeros
             int is_zero = 1;
             for(int i = 0; i < 6; i++){
                 if(mac_addr[i] != 0){
@@ -238,7 +238,7 @@ int get_network_info(FILE *fp){
             DEBUG_LOG(fp, "  MTU: %d\n", ifr.ifr_mtu);
             fprintf(fp, "  MTU: %d\n", ifr.ifr_mtu);
         }
-        // 只為 IPv4 顯示 Netmask 和 Broadcast
+        // Show Netmask and Broadcast only for IPv4
         if(ifa->ifa_addr->sa_family == AF_INET){
             if(ioctl(fd, SIOCGIFNETMASK, &ifr) == 0){
                 struct sockaddr_in *mask = (struct sockaddr_in *)&ifr.ifr_netmask;
