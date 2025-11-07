@@ -284,40 +284,20 @@ sigaction(SIGQUIT, &sa_quit, NULL);
 
 #### Without Signal Handling Protection
 
-When the server does not handle `Ctrl+C` (SIGINT), pressing `Ctrl+C` in the terminal will immediately terminate the server process:
+Without this protection, pressing Ctrl+C sends SIGINT and immediately kills the server, as shown in the screenshot:
 
-```bash
-$ ./build/bin/server
-server listening on 127.0.0.1:9734
-^C  # Press Ctrl+C
-$  # Server terminated immediately
-```
+![ctrlC](image/ctrlC.png)
 
-**Problems:**
-- **Abrupt Termination**: Server exits immediately without cleanup
-- **Active Connections Lost**: Client connections are abruptly closed
-- **Data Loss**: In-progress operations may be interrupted
-- **No Graceful Shutdown**: Resources may not be properly released
 
 #### With Signal Handling Protection
 
 With proper signal handling, `Ctrl+C` is ignored and the server continues running. To shut down the server gracefully, use `Ctrl+\` (SIGQUIT):
 
-```bash
-$ ./build/bin/server
-server listening on 127.0.0.1:9734
-Press Ctrl+/ to exit server (Ctrl+C is ignored)
-^C  # Press Ctrl+C - nothing happens, server continues
-^\  # Press Ctrl+\ - server exits gracefully
-Server shutting down gracefully...
-Server exited
-```
+To shut down the server, the administrator must use Ctrl+\ (SIGQUIT). This triggers the handler, sets the server_should_exit flag, and allows the server to finish its current work and exit cleanly.
 
-The protection mechanism ensures that:
-- **Accident Prevention**: `Ctrl+C` does not accidentally terminate the server
-- **Graceful Shutdown**: `Ctrl+\` allows controlled server shutdown
-- **Resource Cleanup**: Server properly closes listening socket before exit
-- **Service Continuity**: Server remains running during normal terminal operations
+![exit](image/exit.png)
+
+This demonstrates a robust strategy that protects the server from accidental termination while providing a clear and safe mechanism for a graceful shutdown, ensuring data integrity.
 
 
 ## Build system
