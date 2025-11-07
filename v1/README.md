@@ -244,9 +244,7 @@ This ensures that no zombie processes remain in the system, maintaining a clean 
 
 We use the same test command `for i in {1..10}; do ./build/bin/client; done` to simulate multiple client connections
 
-After all clients have finished executing, we check the server processes using `ps aux`
-
-As shown below, the result confirms that no <defunct> (zombie) processes exist — all child processes have been properly reaped by the kernel.
+After all clients have finished executing, we check the server processes using ps aux. The result confirms that no <defunct> (zombie) processes exist — all child processes have been properly reaped by the kernel.
 
 ![no_zombie](image/no_zombie.png)
 
