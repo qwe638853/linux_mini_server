@@ -193,9 +193,6 @@ A single idle client might not seem like a problem, but what if many clients beh
 Without timeout protection, these idle connections accumulate and remain in the ESTAB state, consuming system resources such as file descriptors and process slots over time.
 
 
-![timeout_response.png](image/timeout_response.png)
-
-
 
 #### with Timeout Protection 
 

@@ -303,23 +303,36 @@ int main(int argc, char *argv[]){
                 INFO_LOG(stderr, "Received command: %s\n", command);
                 
                 // Process according to command
-                if (strcmp(command, "SENDMAIL") == 0) {
+                if (strncmp(command, "SENDMAIL", 8) == 0) {
                     INFO_LOG(stderr, "Processing SENDMAIL command\n");
-                    // Read recipient (use read_line to limit read amount)
-                    if (read_line(cfd, to, sizeof(to)) > 0) {
-                        DEBUG_LOG(stderr, "To: %s\n", to);
-                    }
-                    // Read subject
-                    if (read_line(cfd, subject, sizeof(subject)) > 0) {
-                        DEBUG_LOG(stderr, "Subject: %s\n", subject);
-                    }
-                    // Read body
-                    if (read_line(cfd, body, sizeof(body)) > 0) {
-                        DEBUG_LOG(stderr, "Body length: %zu\n", strlen(body));
+                    // Parse parameters from command line (format: SENDMAIL|to|subject|body)
+                    char *token = strtok(command, "|");
+                    if (token != NULL && strcmp(token, "SENDMAIL") == 0) {
+                        // Parse 'to'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(to, token, sizeof(to) - 1);
+                            to[sizeof(to) - 1] = '\0';
+                            DEBUG_LOG(stderr, "To: %s\n", to);
+                        }
+                        // Parse 'subject'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(subject, token, sizeof(subject) - 1);
+                            subject[sizeof(subject) - 1] = '\0';
+                            DEBUG_LOG(stderr, "Subject: %s\n", subject);
+                        }
+                        // Parse 'body'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(body, token, sizeof(body) - 1);
+                            body[sizeof(body) - 1] = '\0';
+                            DEBUG_LOG(stderr, "Body length: %zu\n", strlen(body));
+                        }
                     }
                     
                     // Process email sending (can call send_email function here)
-                    if(fprintf(client_fp, "Command: %s\n", command) < 0 ||
+                    if(fprintf(client_fp, "Command: SENDMAIL\n") < 0 ||
                        fprintf(client_fp, "To: %s\n", to) < 0 ||
                        fprintf(client_fp, "Subject: %s\n", subject) < 0 ||
                        fprintf(client_fp, "Body: %s\n", body) < 0){

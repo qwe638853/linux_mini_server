@@ -129,11 +129,9 @@ int main(int argc, char *argv[]) {
 
         DEBUG_LOG(stderr, "Email details - To: %s, Subject: %s\n", to, subject);
 
-        // Use fprintf to send data, add \n at end of each line for server's fgets to read
-        if(fprintf(server_fp, "SENDMAIL\n") < 0 ||
-           fprintf(server_fp, "%s\n", to) < 0 ||
-           fprintf(server_fp, "%s\n", subject) < 0 ||
-           fprintf(server_fp, "%s\n", body) < 0){
+        // Send all parameters in one line, separated by | (pipe character)
+        // Format: SENDMAIL|to|subject|body
+        if(fprintf(server_fp, "SENDMAIL|%s|%s|%s\n", to, subject, body) < 0){
             ERROR_LOG(stderr, "Failed to send data to server\n");
             fclose(server_fp);
             exit(1);
