@@ -150,6 +150,7 @@ int main(int argc, char *argv[]){
         // 非致命錯誤，繼續執行
     }
     
+    
     memset(&sa_pipe, 0, sizeof(sa_pipe));
     sa_pipe.sa_handler = SIG_IGN;
     if(sigaction(SIGPIPE, &sa_pipe, NULL) < 0){
@@ -203,7 +204,7 @@ int main(int argc, char *argv[]){
             char subject[256];
             char body[1024];
             
-            /* 使用 select() 檢查 socket 是否可讀（實現超時）
+            // 使用 select() 檢查 socket 是否可讀（實現超時）
             fd_set readfds;
             struct timeval select_timeout;
             FD_ZERO(&readfds);
@@ -222,7 +223,7 @@ int main(int argc, char *argv[]){
                 }
                 cleanup_and_exit(client_fp, cfd);
             }
-                */
+        
             
             // 讀取指令（socket 可讀，可以安全調用 fgets）
             if (fgets(command, sizeof(command), client_fp) != NULL) {
@@ -291,9 +292,8 @@ int main(int argc, char *argv[]){
                     send_system_info(client_fp);
                     cleanup_and_exit(client_fp, cfd);
                 } else {
-                    // 其他未知命令：發送系統資訊作為預設行為
-                    WARN_LOG(stderr, "Unknown command: %s, sending system info as default\n", command);
-                    send_system_info(client_fp);
+                    // 其他未知命令
+                    WARN_LOG(stderr, "Unknown command: %s\n", command);
                     cleanup_and_exit(client_fp, cfd);
                 }
             } else {

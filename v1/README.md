@@ -180,8 +180,8 @@ if (select_result <= 0) {
 ```
 #### without Timeout Protection 
 
-To demonstrate the impact of not having a read timeout, we use nc to open a client connection that never sends any data.
-Then, by running the command ss -tanp | grep 9734, we can observe that the server keeps the connection in the ESTAB (established) state indefinitely.
+To demonstrate the impact of not having a read timeout, we use `nc` to open a client connection that never sends any data.
+Then, by running the command `ss -tanp | grep 9734`, we can observe that the server keeps the connection in the ESTAB (established) state indefinitely.
 
 ![timeout_response2.png](image/timeout_response2.png)
 
@@ -197,8 +197,6 @@ Without timeout protection, these idle connections accumulate and remain in the 
 
 We use `nc` to simulate a client connection that does not send any data, in order to test the timeout mechanism
 
-![nc](image/nc.png)
-
 As shown below, the server automatically closes the connection after 30 seconds of inactivity, logging a timeout warning.
 
 ![timeout_response](image/timeout_response.png)
@@ -208,6 +206,51 @@ To verify that the connection has been closed, we can use the `ss -tanp | grep 9
 ![ss_tanp](image/ss_tanp.png)
 
 The result shows that no lingering ESTAB (established) connections remain after the timeout, demonstrating that the mechanism successfully prevents idle clients from occupying system resources indefinitely.
+
+### 2) Zombie Process Prevention (SIGCHLD Handler)
+
+#### Description
+When a child process terminates, it enters a zombie state until the parent process collects its exit status using `wait()` or `waitpid()`.  
+Without proper handling, terminated child processes accumulate as zombies, consuming process table entries (PIDs) and potentially exhausting system resources.  
+The server uses `sigaction()` with the `SA_NOCLDWAIT` flag to automatically reap child processes, preventing zombie accumulation.
+
+#### Key Code Snippet
+```c
+// Configure SIGCHLD handler to prevent zombie processes
+struct sigaction sa; 
+memset(&sa, 0, sizeof(sa));
+sa.sa_handler = SIG_DFL;
+sa.sa_flags = SA_RESTART | SA_NOCLDSTOP | SA_NOCLDWAIT;  // SA_NOCLDWAIT prevents zombies
+if(sigaction(SIGCHLD, &sa, NULL) < 0){
+    WARN_LOG(stderr, "sigaction(SIGCHLD) failed\n");
+    perror("sigaction");
+}
+```
+
+#### Without Zombie Prevention
+
+When the SIGCHLD handler is not properly configured, zombie processes accumulate after child processes terminate.
+
+We use `for i in {1..10}; do ./build/bin/client; done` to simulate multiple client connections:
+
+Running `ps aux` afterwards reveals the problem: multiple child [server] processes are now in a zombie state, marked as <defunct>.
+
+![zombie](image/zombie.png)
+
+#### With Zombie Prevention
+
+With the SIGCHLD handler properly configured using the SA_NOCLDWAIT flag, the server automatically reaps terminated child processes as soon as they exit.
+This ensures that no zombie processes remain in the system, maintaining a clean process table and preventing PID exhaustion.
+
+We use the same test command `for i in {1..10}; do ./build/bin/client; done` to simulate multiple client connections
+
+After all clients have finished executing, we check the server processes using `ps aux`
+
+As shown below, the result confirms that no <defunct> (zombie) processes exist — all child processes have been properly reaped by the kernel.
+
+![no_zombie](image/no_zombie.png)
+
+This demonstrates that the configured sigaction() with SA_NOCLDWAIT effectively prevents zombie accumulation, ensuring stable and reliable server operation even under heavy concurrency.
 
 
 ## Build system
