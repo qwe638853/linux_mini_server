@@ -16,7 +16,7 @@ The server supports two main operations:
 
 ### Server High level Architecture
 
-![Architecture](image/Architecture.png)
+<img width="1731" height="996" alt="image" src="https://github.com/user-attachments/assets/cc1aa30b-b491-4717-90b6-51229252acf9" />
 
 
 ## Server handles at least 10 clients concurrently
