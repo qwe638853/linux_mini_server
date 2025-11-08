@@ -19,6 +19,141 @@ The server supports two main operations:
 <img width="1731" height="996" alt="image" src="https://github.com/user-attachments/assets/cc1aa30b-b491-4717-90b6-51229252acf9" />
 
 
+## SENDMAIL Implementation
+
+The SENDMAIL feature sends emails through SendGrid API. The flow is: Client → Server → `send_email()` → SendGrid API.
+
+### Client Command Format
+
+```bash
+./build/bin/client SENDMAIL [recipient] [subject] [body]
+```
+
+Default values: `qwe638853@gmail.com`, `Test Subject`, `Hello from socket client`.
+
+The client sends parameters as a pipe-delimited string: `SENDMAIL|to|subject|body\n`
+
+```123:134:v1/src/client.c
+    if (cmd_idx < argc && strcmp(argv[cmd_idx], "SENDMAIL") == 0) {
+        // Send email mode
+        INFO_LOG(stderr, "Sending SENDMAIL command\n");
+        const char *to = (cmd_idx + 1 < argc) ? argv[cmd_idx + 1] : "qwe638853@gmail.com";
+        const char *subject = (cmd_idx + 2 < argc) ? argv[cmd_idx + 2] : "Test Subject";
+        const char *body = (cmd_idx + 3 < argc) ? argv[cmd_idx + 3] : "Hello from socket client";
+
+        DEBUG_LOG(stderr, "Email details - To: %s, Subject: %s\n", to, subject);
+
+        // Send all parameters in one line, separated by | (pipe character)
+        // Format: SENDMAIL|to|subject|body
+        if(fprintf(server_fp, "SENDMAIL|%s|%s|%s\n", to, subject, body) < 0){
+```
+
+### Server Processing
+
+The server parses the command using `strtok()` and calls `send_email()`:
+
+```306:349:v1/src/server.c
+                if (strncmp(command, "SENDMAIL", 8) == 0) {
+                    INFO_LOG(stderr, "Processing SENDMAIL command\n");
+                    // Parse parameters from command line (format: SENDMAIL|to|subject|body)
+                    char *token = strtok(command, "|");
+                    if (token != NULL && strcmp(token, "SENDMAIL") == 0) {
+                        // Parse 'to'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(to, token, sizeof(to) - 1);
+                            to[sizeof(to) - 1] = '\0';
+                            DEBUG_LOG(stderr, "To: %s\n", to);
+                        }
+                        // Parse 'subject'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(subject, token, sizeof(subject) - 1);
+                            subject[sizeof(subject) - 1] = '\0';
+                            DEBUG_LOG(stderr, "Subject: %s\n", subject);
+                        }
+                        // Parse 'body'
+                        token = strtok(NULL, "|");
+                        if (token != NULL) {
+                            strncpy(body, token, sizeof(body) - 1);
+                            body[sizeof(body) - 1] = '\0';
+                            DEBUG_LOG(stderr, "Body length: %zu\n", strlen(body));
+                        }
+                    }
+                    
+                    // Process email sending (can call send_email function here)
+                    if(fprintf(client_fp, "Command: SENDMAIL\n") < 0 ||
+                       fprintf(client_fp, "To: %s\n", to) < 0 ||
+                       fprintf(client_fp, "Subject: %s\n", subject) < 0 ||
+                       fprintf(client_fp, "Body: %s\n", body) < 0){
+                        WARN_LOG(stderr, "Failed to write response to client\n");
+                    }
+                    
+                    INFO_LOG(stderr, "Sending email to %s\n", to);
+                    if(send_email(to, subject, body) < 0){
+                        ERROR_LOG(stderr, "Failed to send email to %s\n", to);
+                        fprintf(client_fp, "Error: Failed to send email\n");
+                    } else {
+                        INFO_LOG(stderr, "Email sent successfully to %s\n", to);
+                        fprintf(client_fp, "Email sent successfully\n");
+                    }
+```
+
+### SendGrid API Integration
+
+The `send_email()` function (in `smtp.c`) handles SendGrid API integration:
+
+1. **Load credentials** from `.env` file: `SENDGRID_API_KEY` and `SENDGRID_FROM`
+2. **Build JSON payload** with escaped subject and body
+3. **Send HTTPS POST** to `https://api.sendgrid.com/v3/mail/send` using libcurl with Bearer token authentication
+4. **Check response** - expects HTTP 202 for success
+
+```200:241:v1/src/smtp.c
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_URL, "https://api.sendgrid.com/v3/mail/send");
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(payload));
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    DEBUG_LOG(stderr, "send_email: CURL options set, sending request...\n");
+
+    CURLcode res = curl_easy_perform(curl);
+    
+    int http_code = 0;
+    if (res != CURLE_OK){
+        ERROR_LOG(stderr, "curl_easy_perform failed: %s\n", errbuf);
+        fprintf(stderr, "curl_easy_perform failed: %s\n", errbuf);
+    } else {
+        CURLcode getinfo_res = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if(getinfo_res != CURLE_OK){
+            WARN_LOG(stderr, "curl_easy_getinfo() failed, using default http_code 0\n");
+            http_code = 0;
+        } else {
+            INFO_LOG(stderr, "send_email: HTTP response code: %d\n", http_code);
+        }
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    free(payload);
+
+    if (res != CURLE_OK) {
+        return -1;
+    }
+
+    if (http_code != 202) {
+        ERROR_LOG(stderr, "SendGrid API returned error: %d\n", http_code);
+        fprintf(stderr, "SendGrid API returned error: %d\n", http_code);
+        return -1;
+    }
+
+    INFO_LOG(stderr, "send_email: Email sent successfully\n");
+    return 0;
+```
+
+
 ## Server handles at least 10 clients concurrently
 
 The server uses a fork-based architecture to handle multiple clients concurrently. Each client connection is processed in a separate child process.
