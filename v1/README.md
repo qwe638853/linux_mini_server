@@ -481,3 +481,14 @@ make install
 
 This installs executables to `/usr/local/bin` and libraries to `/usr/local/lib` (default paths, configurable via CMake).
 
+## Execution screenshots
+Here are some screenshots of the program in action.
+
+system info:
+<img width="577" height="562" alt="image" src="https://github.com/user-attachments/assets/8e237cdb-694a-449a-a012-5c607ff9bf49" />
+send mail:
+<img width="900" height="323" alt="image (1)" src="https://github.com/user-attachments/assets/ce69c471-7b98-401e-81b0-be524b00f518" />
+
+<img width="1592" height="347" alt="image (2)" src="https://github.com/user-attachments/assets/a7ae5e39-9a07-42e9-8a4f-8596a5f79a0f" />
+
+
