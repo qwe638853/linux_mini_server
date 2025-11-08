@@ -506,4 +506,7 @@ Final confirmation and result output after email is sent.
 
 <img width="1592" height="347" alt="image (2)" src="https://github.com/user-attachments/assets/a7ae5e39-9a07-42e9-8a4f-8596a5f79a0f" />
 
+## Presentation
+You can view the project presentation here:  
+[View Slides]([https://your-presentation-link.com](https://www.canva.com/design/DAG4BPI4zY4/aFp34rnQ6z9nvxUSjG_mAw/edit?utm_content=DAG4BPI4zY4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton))
 
