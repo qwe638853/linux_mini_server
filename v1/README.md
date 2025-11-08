@@ -508,5 +508,5 @@ Final confirmation and result output after email is sent.
 
 ## Presentation
 You can view the project presentation here:  
-[View Slides]([https://your-presentation-link.com](https://www.canva.com/design/DAG4BPI4zY4/aFp34rnQ6z9nvxUSjG_mAw/edit?utm_content=DAG4BPI4zY4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton))
+[https://www.canva.com/design/DAG4BPI4zY4/aFp34rnQ6z9nvxUSjG_mAw/edit?utm_content=DAG4BPI4zY4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton]([url](https://www.canva.com/design/DAG4BPI4zY4/aFp34rnQ6z9nvxUSjG_mAw/edit?utm_content=DAG4BPI4zY4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton))
 
